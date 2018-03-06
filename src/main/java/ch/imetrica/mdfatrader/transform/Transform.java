@@ -8,7 +8,20 @@ import ch.imetrica.mdfatrader.series.TimeSeries;
 import ch.imetrica.mdfatrader.series.TimeSeriesEntry;
 
 
-
+/**
+ * 
+ * The basic class for transforming
+ * raw nonstationary (financial) time-series
+ * data into a stationary (log-transformed)
+ * time series for real-time filtering that still 
+ * retains memory.
+ * 
+ * The series can be fractionally differenced with order d < 0 
+ * as opposed to order 1 log-differenced so as to (ideally) 
+ * render stationary for the purpose of computing the MDF
+ * coefficients 
+ * 
+ */
 
 public class Transform {
 
@@ -17,10 +30,23 @@ public class Transform {
 	private boolean logTransform;
 	public double weight_threshold = .0001;
 	
-	public double baseTransform(double v) {
+	private double baseTransform(double v) {
 		
 		return (logTransform) ? Math.log(v) : v;
 	}
+	
+	/**
+     * Creates a transformation protocol with difference d
+     * and sets log-transformation. The difference weights
+     * are computed and stored
+     * 
+     * @param d
+     *            The fractional differencing value 0 <= d <= 1
+     *            
+     * @param log
+     * 			  Perform log transform on raw data
+     * 
+     */
 	
 	public Transform(double d, boolean log) {
 		
@@ -30,7 +56,15 @@ public class Transform {
 		computeFractionalDifferenceWeights(weight_threshold);		
 	}
 		
-	
+	/**
+     * Computes the fractional difference weights for a given value
+     * 0 < d <= 1. The threshold determines when to truncate the weight. 
+     * 1e-4 is typically a 'good enough' truncation value. 
+     * 
+     * @param thesh
+     *            Threshold for determining truncation
+     * 
+     */
 	private void computeFractionalDifferenceWeights(double thresh) {
 		
 	  if(d > 0) {
@@ -65,7 +99,23 @@ public class Transform {
 	}
 
 	
-	
+	/**
+     * Applies the transform to a given raw TimeSeries<Double> object and returns
+     * the transformed data. The beginning of the time series will contain less 
+     * precise differenced data due to truncation used in the weight filtering. 
+     * In the case d = 0 or d = 1, no differencing or classic (log)-differencing 
+     * is applied.
+     * 
+     * @param anyseries
+     *            Any TimeSeries<Double> raw nonstationary time series 
+     * 
+     * @return TimeSeries<double[]>
+     * 			  A TimeSeries object with double[] values where the first index 
+     *            contains the transformed data, and the second index contains the 
+     *            original raw time series data, which is used as reference 
+     *            to compute future transformed values
+     *            
+     */
 	
 	public TimeSeries<double[]> applyTransform(TimeSeries<Double> anyseries) {
 		
@@ -115,6 +165,24 @@ public class Transform {
 		return transformedSeries;	
 	}
 
+	/**
+     * Adds a new raw and transformed data to the referenced TimeSeries. The 
+     * new value in index 0 will be the new transformed data at the given datetime
+     * stamp
+     * 
+     * @param timeSeries
+     *            The historical TimeSeries<double[]> transformed and raw 
+     *            nonstationary time series. The new transformed value and raw value 
+     *            are added to this time series
+     *            
+     * @param val
+     *           The new raw time series value
+     *           
+     * @param data
+     *           The datetime stamp
+     *            
+     */
+	
 	public void addValue(TimeSeries<double[]> timeSeries, double val, String date) {
 		
 		
@@ -131,10 +199,8 @@ public class Transform {
 		    sum = 0;
 			for (int l = 0; l < filter_length; l++) {
 					sum = sum + f_weights[l]*baseTransform(timeSeries.get(N - l - 1).getValue()[1]);
-			}
-			
-			timeSeries.get(N-1).getValue()[0] = sum;	
-			
+			}			
+			timeSeries.get(N-1).getValue()[0] = sum;				
 		}
 		else if(d == 1) {
 			
@@ -142,8 +208,7 @@ public class Transform {
 				double v = baseTransform(timeSeries.get(N - 1).getValue()[1]) - 
 						baseTransform(timeSeries.get(N - 2).getValue()[1]);
 				
-				timeSeries.get(N-1).getValue()[0] = v;
-						
+				timeSeries.get(N-1).getValue()[0] = v;			
 		}
 		else {
 			
@@ -153,7 +218,20 @@ public class Transform {
 		}				
 	}
 
-	public TimeSeries<Double> applyLogTransform(TimeSeries<Double> anyseries, boolean log) {
+	/**
+     * Adds a new raw and transformed data to the referenced TimeSeries. The 
+     * new value in index 0 will be the new transformed data at the given datetime
+     * stamp
+     * 
+     * @param anyseries
+     *            The historical TimeSeries<Double> we wish to apply transform on
+     *            
+     *           
+     * @return TimeSeries<Double>
+     *           The (log)transformed time series
+     *            
+     */
+	public TimeSeries<Double> applyLogTransform(TimeSeries<Double> anyseries) {
 		
 		TimeSeries<Double> transformedSeries = new TimeSeries<Double>();
 		for(int N = 0; N < anyseries.size(); N++) {
@@ -162,12 +240,17 @@ public class Transform {
 			transformedSeries.add(new TimeSeriesEntry<Double>(anyseries.get(N).getDateTime(), val));	
 			
 		}
-		
-		
-		return null;
+		return transformedSeries;
 	}
 	
-	
+	/**
+     * Outputs the weights in String format for testing
+     *            
+     *           
+     * @return String weights
+     *           The weights used for differencing
+     *            
+     */
 	public String toString() {
 		
 		String w = "\n Weights for d = " + d + "\n";
@@ -180,6 +263,22 @@ public class Transform {
 		return w;
 	}
 
+	
+	/**
+     * Adds a new Price value to the given time series using the 
+     * defined (log) transform. No differencing is made since this 
+     * is uniquely for Price time series
+     * 
+     * @param timeSeries
+     *            The historical TimeSeries<Double> already transformed
+     *                      
+     * @param val
+     *           The new raw Price value
+     *           
+     * @param data
+     *           The datetime stamp
+     *            
+     */
 	public void addPrice(TimeSeries<Double> timeSeries, double val, String date) {
 		timeSeries.add(new TimeSeriesEntry<Double>(date, baseTransform(val)));
 	}

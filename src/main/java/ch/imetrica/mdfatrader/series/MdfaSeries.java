@@ -9,7 +9,7 @@ import org.joda.time.format.DateTimeFormatter;
 public interface MdfaSeries extends Serializable {
 
 	
-	/* 
+	/**
 	 * 
 	 * Basic interface to hold time series and 
 	 * time series meta-information
@@ -28,10 +28,10 @@ public interface MdfaSeries extends Serializable {
 	 *  
 	 * III. Transform/Differencing  
 	 *  
-	 * IV. DateTime formatter 
-	 * new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	 * new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-	 * new SimpleDateFormat("dd.MM.yyyy"); 
+	 * IV. DateTime formatter common formats
+	 *     Format("yyyy-MM-dd HH:mm:ss");
+	 *     Format("yyyy-MM-dd_HH:mm:ss");
+	 *     Format("dd.MM.yyyy"); 
 	 *  
 	 */
 	

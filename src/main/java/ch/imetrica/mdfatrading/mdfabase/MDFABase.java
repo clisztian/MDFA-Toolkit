@@ -3,10 +3,11 @@ package ch.imetrica.mdfatrading.mdfabase;
 public class MDFABase {
 
 	
-	/*
-	 *  Common mdfa parameters that 
-	 *  are shared in various classes
+	/**
 	 * 
+	 * The common shared MDFA object that contains the basic 
+	 * Meta information of computing the in-sample MDFA 
+	 * filtering process 
 	 * 
 	 */
 	

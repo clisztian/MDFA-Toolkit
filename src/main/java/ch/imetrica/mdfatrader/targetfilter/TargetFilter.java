@@ -23,6 +23,10 @@ public class TargetFilter {
 		
 	}
 
+	public double[] getTargetGamma() {
+		return targetGamma;
+	}
+	
 	public double getValue(int j) {
 		
 		return targetGamma[j];

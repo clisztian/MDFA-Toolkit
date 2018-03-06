@@ -279,6 +279,16 @@ public class SignalSeries implements MdfaSeries {
         eurusd.setVisible(true);
 		
 	}
+    
+    public String toString() {
+    	
+    	String tostring = "";
+		for(int i = 0; i < signalSeries.size(); i++) {
+			
+			tostring += signalSeries.get(i).getDateTime() + " " + signalSeries.get(i).getValue() + " " + target.getTargetDate(i) + " " + target.getTargetValue(i) + "\n";
+		}
+		return tostring;
+    }
 	
 	public double getTargetValue(int i) {
 		return target.getTargetValue(i);
@@ -294,7 +304,7 @@ public class SignalSeries implements MdfaSeries {
 		CsvReader marketDataFeed;
 		
 		int nObs = 0;
-		int MAX_OBS = 500;
+		int MAX_OBS = 1200;
 		
 		try{
 			
@@ -305,21 +315,37 @@ public class SignalSeries implements MdfaSeries {
 			 while (marketDataFeed.readRecord()) {
 				 
 				double price = (new Double(marketDataFeed.get("bid"))).doubleValue();
-				String date_stamp = marketDataFeed.get("dateTime");
-				
+				String date_stamp = marketDataFeed.get("dateTime");				
 				rawSeries.add(date_stamp, price);
+				
 				nObs++;
 				
 				if(nObs == MAX_OBS) break;
 			 }
 			 
 			 double[] filter = (new WhiteNoiseFilter(Math.PI/6.0, 0, 50)).getFilterCoefficients();
-			 TargetSeries myTarget = new TargetSeries(rawSeries, .4, true);
+			 TargetSeries myTarget = new TargetSeries(rawSeries, 0.2, true);
 			 
 			 
 			 SignalSeries signal = new SignalSeries(filter, myTarget, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
 		
-		
+		     
+			 SignalSeries.plotSignal(signal);
+			 
+			 
+			 while (marketDataFeed.readRecord()) {
+				 
+					double price = (new Double(marketDataFeed.get("bid"))).doubleValue();
+					String date_stamp = marketDataFeed.get("dateTime");				
+					signal.addValue(price, date_stamp);
+					
+					nObs++;
+					
+					if(nObs == MAX_OBS + 200) break;
+					
+			 }
+			 
+			 System.out.println(signal.toString());
 			 SignalSeries.plotSignal(signal);
 			 
 		

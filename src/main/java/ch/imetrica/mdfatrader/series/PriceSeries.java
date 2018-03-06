@@ -18,7 +18,7 @@ public class PriceSeries implements MdfaSeries {
 	boolean logTransform = false;
 	
 	/**
-     * PriceSeries is a type of time series which has one components:
+     * PriceSeries is a type of time series which has only one component:
      * The original price series.  
      * 
      * @param anyseries
@@ -31,7 +31,7 @@ public class PriceSeries implements MdfaSeries {
 	public PriceSeries(TimeSeries<Double> anyseries, boolean log) {
 		
 		seriesTransform = new Transform(0, log);
-		timeSeries = seriesTransform.applyLogTransform(anyseries, log);
+		timeSeries = seriesTransform.applyLogTransform(anyseries);
 		logTransform = log;
 				
 	}

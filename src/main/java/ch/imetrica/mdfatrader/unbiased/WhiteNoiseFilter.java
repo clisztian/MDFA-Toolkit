@@ -56,9 +56,6 @@ public class WhiteNoiseFilter {
 	    	sum = sum + wn_filter[i];
 	    }
 	    
-	    for(int i = 0; i < L_filter; i++) {
-	    	wn_filter[i] = wn_filter[i]/(sum+(sum-freqCutoff/Math.PI));
-	    }
 	}
 	
 	/**

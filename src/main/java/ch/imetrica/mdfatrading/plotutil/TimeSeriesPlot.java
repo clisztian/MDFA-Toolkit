@@ -5,6 +5,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.general.SeriesException;
 import org.jfree.data.time.Day;
+import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
@@ -71,7 +72,7 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	    	final TimeSeries mySeries = new TimeSeries("EURUSD series");
 	    	final TimeSeries mySignal = new TimeSeries("Signal");
 	    	
-	    	for (int i = 0; i < signal.size(); i++) {
+	    	for (int i = 200; i < signal.size(); i++) {
 	        	
 	            try {
 	            	
@@ -80,7 +81,7 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	                
 	                DateTime sigDateTime = signal.getSignalDateTime(i);
 	                
-	                Day current = new Day(sigDateTime.toDate());
+	                Second current = new Second(sigDateTime.toDate());
 	                
 	                mySignal.add(current, value);
 	                mySeries.add(current, tsvalue);
@@ -104,6 +105,35 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
 	        chartPanel.setMouseZoomable(true, false);
 	        setContentPane(chartPanel);
+		}
+
+		public TimeSeriesPlot(String title, double[] prdx) {
+			
+	    	super(title);
+	        final XYDataset dataset = createDataset(title, prdx);
+	        final JFreeChart chart = createChart(dataset);
+	        final ChartPanel chartPanel = new ChartPanel(chart);
+	        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
+	        chartPanel.setMouseZoomable(true, false);
+	        setContentPane(chartPanel);			// TODO Auto-generated constructor stub
+		}
+
+		private XYDataset createDataset(String title, double[] prdx) {
+			
+			final TimeSeries series = new TimeSeries("Periodogram");
+	        Day current = new Day(5, 3, 2018);
+	        double value = 100.0;
+	        for (int i = 0; i < prdx.length; i++) {
+	            try {
+	                value = prdx[i];
+	                series.add(current, value);
+	                current = (Day) current.next();
+	            }
+	            catch (SeriesException e) {
+	                System.err.println("Error adding to series");
+	            }
+	        }
+	        return new TimeSeriesCollection(series);
 		}
 
 		private XYDataset createDataset(String title, TargetSeries[] collection) {
