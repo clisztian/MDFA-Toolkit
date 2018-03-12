@@ -5,12 +5,10 @@ import java.io.Serializable;
 import org.joda.time.format.DateTimeFormatter;
 
 
-
-public interface MdfaSeries extends Serializable {
-
-	
-	/**
-	 * 
+/**
+ * 
+ * 	
+	  
 	 * Basic interface to hold time series and 
 	 * time series meta-information
 	 
@@ -33,16 +31,25 @@ public interface MdfaSeries extends Serializable {
 	 *     Format("yyyy-MM-dd_HH:mm:ss");
 	 *     Format("dd.MM.yyyy"); 
 	 *  
-	 */
+	 
+ * 
+ * 
+ * @author Christian D. Blakely (clisztian@gmail.com)
+ *
+ */
+public interface MdfaSeries extends Serializable {
+
+	
+
 	
 	public enum SeriesType {
 		
-		PRICE,				/* Price of traded asset */
-		TARGET,				/* Target series that generates signal, needs coeffs */
-		EXPLANATORY,		/* Any explanatory series used to compute target signal, needs coeffs */
-		SIGNAL,				/* A filtered series, coeffs are optional */
-		VOLA,				/* A price volatility series - implied volatility */
-		TECHNICAL;			/* Any other technical indicator */
+		PRICE,				/** Price of traded asset */
+		TARGET,				/** Target series that generates signal, needs coeffs */
+		EXPLANATORY,		/** Any explanatory series used to compute target signal, needs coeffs */
+		SIGNAL,				/** A filtered series, coeffs are optional */
+		VOLA,				/** A price volatility series - implied volatility */
+		TECHNICAL;			/** Any other technical indicator */
 	}
 	
 
@@ -88,6 +95,26 @@ public interface MdfaSeries extends Serializable {
 	SeriesType getSeriesType();
 	void setDateFormat(DateTimeFormatter anyformat);
 	DateTimeFormatter getDateFormat() throws Exception;
+	int size();
+	
+	/**
+	 * Sets the name of this series from which it can 
+	 * be uniquely identified
+	 * 
+	 * @param name
+	 *   Any name 
+	 */
+	void setName(String name);
+	
+	/**
+	 * Gets the name of this series
+	 * 
+	 * @return
+	 *   Name of series which should be unique
+	 */
+	String getName();
+
+	double getTargetValue(int i);
 	
 	
 

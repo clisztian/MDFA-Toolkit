@@ -25,6 +25,8 @@ public class SignalSeries implements MdfaSeries {
 	private TimeSeries<Double> signalSeries;
 	private TargetSeries target;
 	private double[] coeffs;
+
+	private String name;
 	
 	
 	public SignalSeries(double[] coeffs) {			
@@ -48,6 +50,25 @@ public class SignalSeries implements MdfaSeries {
 	
 	
 	/**
+	 * 
+	 * Constructs a SignalSeries from a reference target time series
+     * and set of MDFA coefficients. The signal time series will be 
+     * automatically computed once the coefficients are set  
+	 * 
+	 * @param anytarget
+	 *   A target TimeSeries object holding historical price/target data
+	 * @param name
+	 *   Name of series such that it can be uniquely identified
+	 */
+	public SignalSeries(TargetSeries anytarget, String name) {
+		
+		this.coeffs = null;
+		this.target = anytarget;	
+		this.name = name;
+	}
+	
+	
+	/**
      * Constructs a SignalSeries from a reference target time series
      * and set of MDFA coefficients. The signal time series will be 
      * automatically computed 
@@ -67,6 +88,7 @@ public class SignalSeries implements MdfaSeries {
 		this.computeSignalFromTarget();
 	}
 	
+		
 	
 	/**
      * Constructs a SignalSeries from a reference target time series
@@ -356,6 +378,17 @@ public class SignalSeries implements MdfaSeries {
 			e.printStackTrace();
 		}
 		
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	

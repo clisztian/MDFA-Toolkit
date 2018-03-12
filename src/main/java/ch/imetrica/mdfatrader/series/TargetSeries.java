@@ -17,9 +17,9 @@ public class TargetSeries implements MdfaSeries {
 	private static final long serialVersionUID = 1L;
 	private final SeriesType seriesType = SeriesType.TARGET;
 	private DateTimeFormatter formatter;// = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss");
-	TimeSeries<double[]> timeSeries;
-	Transform seriesTransform;
-
+	private TimeSeries<double[]> timeSeries;
+	private Transform seriesTransform;
+    private String name;
 	
 	/**
      * TargetSeries is a type of time series which has two components:
@@ -47,7 +47,6 @@ public class TargetSeries implements MdfaSeries {
 		timeSeries = seriesTransform.applyTransform(anyseries);
 				
 	}
-
 
 
 	/**
@@ -270,6 +269,18 @@ public class TargetSeries implements MdfaSeries {
         	throw new Exception("No DateTime format defined yet");
         }		
 		return formatter;
+	}
+
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
+	@Override
+	public String getName() {
+		return name;
 	}
 
 

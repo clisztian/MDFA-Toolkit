@@ -16,6 +16,7 @@ public class PriceSeries implements MdfaSeries {
 	TimeSeries<Double> timeSeries;
 	Transform seriesTransform;
 	boolean logTransform = false;
+	private String name;
 	
 	/**
      * PriceSeries is a type of time series which has only one component:
@@ -84,5 +85,30 @@ public class PriceSeries implements MdfaSeries {
         }
 		
 		return formatter;
+	}
+
+
+	@Override
+	public int size() {
+		// TODO Auto-generated method stub
+		return timeSeries.size();
+	}
+
+
+	@Override
+	public double getTargetValue(int i) {
+		return 0;
+	}
+
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
+	@Override
+	public String getName() {
+		return name;
 	}
 }

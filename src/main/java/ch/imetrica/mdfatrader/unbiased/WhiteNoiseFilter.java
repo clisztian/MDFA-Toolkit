@@ -58,6 +58,7 @@ public class WhiteNoiseFilter {
 	    
 	}
 	
+	
 	/**
      * The L_filter white noise filter with cutoff freqCutoff
      * 
@@ -66,5 +67,32 @@ public class WhiteNoiseFilter {
 	public double[] getFilterCoefficients() {
 		return wn_filter;
 	}
+	
+	
+	
+//	private void computeLagFilterCoefficients() {
+//		
+//		for(int k=0;k < L_filter; k++) {
+//			
+//			double sum=0.0; 
+//			double sumi = 0.0;
+//			
+//			for(int n=0;n<=K;n++) {
+//				sum = sum + Gamma[n]*Math.cos(-lag*Math.PI*n/K)*Math.cos(Math.PI*n*k/K);
+//				sumi = sumi + Gamma[n]*Math.sin(-lag*Math.PI*n/K)*Math.sin(Math.PI*n*k/K);
+//			}     
+//			if(k==0) {h0b0[0] = sum*sum;}
+//			else
+//			{h0b0[k] = 2.0*sum;} //(sum*sum + sumi*sumi);} 
+//			sum2 = sum2 + h0b0[k];
+//		}
+//		for(i=0;i<L;i++)
+//		{h0b0[i] = h0b0[i]/(sum2-h0b0[0]/2.0);}    
+//     
+//		for(i=0;i<L;i++)
+//		{
+//			System.out.println("0.0 " + h0b0[i] + " 0.0 0.0");    
+//		}
+//	}
 	
 }

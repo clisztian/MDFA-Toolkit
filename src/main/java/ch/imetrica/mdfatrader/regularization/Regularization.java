@@ -1,71 +1,112 @@
 package ch.imetrica.mdfatrader.regularization;
 
-import ch.imetrica.mdfatrader.matrix.MdfaMatrixGPU;
+import ch.imetrica.mdfatrader.matrix.MdfaMatrix;
+import ch.imetrica.mdfatrading.mdfa.MDFABase;
 
+
+/**
+ * The Regularization class holds the regularization matrix
+ * Q for the regularization effects along with a design matrix
+ * that maps the dimensions of the system to handle the constraints
+ * i1 and i2. 
+ * 
+ * 
+ * 
+ * @author lisztian
+ *
+ */
 public class Regularization {
 
 	
-	
-	double smooth; 
-	double decay_strength;
-	double decay_length;
-	double cross_cor; 
-	double shift_constraint;
-	double lag; 
-	double[] weight_constraint;
-	
-	int L; 
-	int i1;
-	int i2; 
-	
-	int nseries;
-	
-	MdfaMatrixGPU Q_smooth; 
-	MdfaMatrixGPU Q_decay; 
-	MdfaMatrixGPU Q_cross;
-	MdfaMatrixGPU des_mat; 
-	MdfaMatrixGPU w_eight;
-	MdfaMatrixGPU Q_cdev;
-	
-	Regularization(int nseries,				/*Number of explanatory series, nseries = 1 if univariate */ 
-			int L,  						/*Length of the filter */
-			int i1, 						/*first derivative constraint */ 
-			int i2, 						/*second derivative constraint */
-			double lag, 					/*forecast or smoothing lag*/
-			double smooth,                  /*coefficient smoothing regularization */
-			double decay_strength,          /*decay strength of coefficients */
-			double decay_length,            /*decay starting point */
-			double cross_cor,               /*for multivariate, cross-regularization */
-			double shift_constraint,        /*shifting constraint */
-			double[] weight_constraint)     /*probably not needed */
-	{
 		
-		this.cross_cor = 100*Math.tan(Math.min(cross_cor,0.999999)*Math.PI/2.0);
-		this.decay_length = 100*Math.tan(Math.min(decay_length,0.999999)*Math.PI/2.0);
-		this.decay_strength = 100*Math.tan(Math.min(decay_strength,0.999999)*Math.PI/2.0);
-		this.smooth = 100*Math.tan(Math.min(smooth,0.999999)*Math.PI/2.0);
-		this.shift_constraint = shift_constraint;
-		this.weight_constraint = weight_constraint;
+	private MdfaMatrix Q_smooth; 
+	private MdfaMatrix des_mat; 
+	private MdfaMatrix w_eight;
+	private MDFABase anyMDFA;
+	
+
+	/**
+	 * 
+	 * Constructs the regularization and design matrices 
+	 * according to the MDFABase object that holds all the necessary 
+	 * parameters for construction the system. Needs a MDFABase 
+	 * object. Checks on parameters inside the MDFABase object should 
+	 * have already been made in the MDFABase class.
+	 * 
+	 * @param anyMDFA
+	 *     The MDFABase object holding all the necessary 
+	 *     mdfa filtering parameters
+	 */
+	public Regularization(MDFABase anyMDFA) {
 		
-		this.L = L; 
-		this.i1 = i1;
-		this.i2 = i2; 
-		this.lag = lag; 
-		this.nseries = nseries;
-		
-		
+		this.anyMDFA = anyMDFA;
+		this.computeWeightMatrix();
+		this.computeRegularizationMatrices();
+	}
+	
+	
+	/**
+	 * 
+	 * Returns the regularization matrix that accounts for 
+	 * all the regulatization effects in one matrix
+	 * 
+	 * @return Q_smooth
+	 *     The aggregate regularization matrix 
+	 *     that includes smooth, decays, and cross, 
+	 *     all in one
+	 */
+	public MdfaMatrix getQSmooth() {
+		return Q_smooth;
+	}
+
+	/**
+	 * 
+	 * Returns the design matrix which regulates the dimensions 
+	 * of the final system taking into account the i1 and i2 
+	 * constraints and the lag operator 
+	 * 
+	 * @return des_mat
+	 *     The final design matrix 
+	 */
+	public MdfaMatrix getDesignMatrix() {
+		return des_mat;
+	}
+
+	/**
+	 * 
+	 * Returns the design vector for the right-hand side 
+	 * of the final system of equations taking into account the i1 and i2
+	 * constraints and the lag operator along with the shift constraint
+	 * at frequency zero 
+	 * 
+	 * @return w_eight
+	 *      The right-hand side vector of the final equation
+	 *    
+	 */
+	public MdfaMatrix getWeight() {
+		return w_eight;
 	}
 	
 	
 	private void computeWeightMatrix() {
 		
-		int j;
+		
+		int L = anyMDFA.getFilterLength(); 
+		int i1 = anyMDFA.getI1();
+		int i2 = anyMDFA.getI2(); 
+		double lag = anyMDFA.getLag(); 
+		int nseries = anyMDFA.getNSeries();
+		double shift_constraint = anyMDFA.getShift_constraint();
+		double[] weight_constraint = new double[nseries];
+		weight_constraint[0] = 1.0;	
+		w_eight = new MdfaMatrix(nseries*L, 1);
+		
 		
 	    if(i1 == 1) {
 	    	
 	      if(i2 == 1)  {
 	         
-	        for(j=0; j<nseries; j++) {
+	        for(int j=0; j < nseries; j++) {
 	        	
 	        	if(lag < 1) {
 	        		
@@ -79,10 +120,10 @@ public class Regularization {
 	            }
 	        }
 	      }
-	      else
-	      {	      
-	        for(j=0;j<nseries; j++)
-	        {
+	      else {
+	    	  
+	        for(int j=0; j < nseries; j++) {
+	        	
 	          if (lag<1) {
 	        	  w_eight.mdfaVectorSet( j*L, weight_constraint[j]); 	       
 	          } 
@@ -91,30 +132,42 @@ public class Regularization {
 	          }
 	        }
 	      }
-	  }    
-	  else
-	  {
-	    if(i2 == 1)
-	    {
-	      for(j=0;j<nseries; j++)
-	      {
-	        if (lag<1) {
-	        	w_eight.mdfaVectorSet( L*j, 0); 
-	        	w_eight.mdfaVectorSet( L*j+1, shift_constraint/(1.0-lag));
-	        }
-	        else {
-	        	w_eight.mdfaVectorSet( (int)lag + L*j, 0); 
-	        	w_eight.mdfaVectorSet( (int)lag + L*j+1, shift_constraint);
-	        }        
-	      }
-	    } 
-	  }
-	    
+		}    
+		else {
+			
+		    if(i2 == 1) {
+		    
+		      for(int j=0;j<nseries; j++) {
+		        
+		    	if (lag<1) {
+		        	w_eight.mdfaVectorSet( L*j, 0); 
+		        	w_eight.mdfaVectorSet( L*j+1, shift_constraint/(1.0-lag));
+		        }
+		        else {
+		        	w_eight.mdfaVectorSet( (int)lag + L*j, 0); 
+		        	w_eight.mdfaVectorSet( (int)lag + L*j+1, shift_constraint);
+		        }        
+		      }
+		    } 
+		}
 	}
 	
 	
 	
 	private void computeRegularizationMatrices() {
+		
+		
+		double cross_cor      = 100*Math.tan(Math.min(anyMDFA.getCrossCorr(),0.999999)*Math.PI/2.0);
+		double decay_length   = 100*Math.tan(Math.min(anyMDFA.getDecayStart(),0.999999)*Math.PI/2.0);
+		double decay_strength = 100*Math.tan(Math.min(anyMDFA.getDecayStrength(),0.999999)*Math.PI/2.0);
+		double smooth         = 100*Math.tan(Math.min(anyMDFA.getSmooth(),0.999999)*Math.PI/2.0);
+		
+		
+		int L = anyMDFA.getFilterLength(); 
+		int i1 = anyMDFA.getI1();
+		int i2 = anyMDFA.getI2(); 
+		double lag = anyMDFA.getLag(); 
+		int nseries = anyMDFA.getNSeries();
 		
 
 		//---  create dimensions of regularization matrices
@@ -136,19 +189,21 @@ public class Regularization {
 		  }
 		}
 
-		MdfaMatrixGPU _Q_smooth = new MdfaMatrixGPU(L,L);                
-		MdfaMatrixGPU _Q_decay = new MdfaMatrixGPU(L,L); 
-		MdfaMatrixGPU cross_dev = new MdfaMatrixGPU(ncols, ncols2);
+
+
+		Q_smooth = new MdfaMatrix(ncols, ncols);  
+		des_mat = new MdfaMatrix(ncols2,ncols); 
 		
-		Q_smooth = new MdfaMatrixGPU(ncols, ncols);
-		Q_decay = new MdfaMatrixGPU(ncols,ncols);          
-		Q_cross = new MdfaMatrixGPU(ncols,ncols);    
-		des_mat = new MdfaMatrixGPU(ncols2,ncols);   
+		
+		MdfaMatrix _Q_smooth = new MdfaMatrix(L,L);                
+		MdfaMatrix _Q_decay = new MdfaMatrix(L,L); 
+		MdfaMatrix Q_decay = new MdfaMatrix(ncols,ncols);          
+		MdfaMatrix Q_cross = new MdfaMatrix(ncols,ncols);  
 
 	    //--- set initial values -------
 		if(L > 2) {
 			
-			_Q_smooth.mdfaMatrixSet(0,0,  1.0*smooth);  
+			_Q_smooth.mdfaMatrixSet(0,0,  1.0*smooth); 
 		    _Q_smooth.mdfaMatrixSet(0,1, -2.0*smooth);  
 		    _Q_smooth.mdfaMatrixSet(0,2,  1.0*smooth);  
 		    _Q_decay.mdfaMatrixSet( 0, 0, decay_strength*Math.pow(1.0 + decay_length,  (2.0*Math.abs(0.0-lag)))); 
@@ -160,7 +215,7 @@ public class Regularization {
 		    _Q_decay.mdfaMatrixSet( 1, 1, decay_strength*Math.pow(1.0 + decay_length,  (2.0*Math.abs(1.0-lag)))); 
 
 		    i=L-1;
-		    _Q_smooth.mdfaMatrixSet(i,i-2,  1.0*smooth);       
+		    _Q_smooth.mdfaMatrixSet(i,i-2,  1.0*smooth);        
 		    _Q_smooth.mdfaMatrixSet(i,i-1, -2.0*smooth);     
 		    _Q_smooth.mdfaMatrixSet(i,i,    1.0*smooth);    
 		    _Q_decay.mdfaMatrixSet( i, i, decay_strength*Math.pow(1.0 + decay_length, (2.0*Math.abs(i-lag))));        
@@ -189,7 +244,7 @@ public class Regularization {
 		    {
 		      start = j*L;
 		      for(i=0;i<L;i++)
-		      {
+		      { 
 		        for(k=0;k<L;k++)
 		        {
 		           Q_smooth.mdfaMatrixSet(start + i, start + k, _Q_smooth.mdfaMatrixGet(i,k));
@@ -198,7 +253,6 @@ public class Regularization {
 		      }
 		    }
 		 }
-		
 		
 		//---- set cross -------------------------------------------------------------
 	    if(nseries > 1) {
@@ -413,19 +467,58 @@ public class Regularization {
 	    }      
 	  }
 	    
-	  if(nseries > 1){
+	  if(nseries > 1) {
 	       
-		  cross_dev = Q_cdev.mdfaMatrixMult(des_mat);  
+		  MdfaMatrix Q_cdev = getQDeviation();
+		  MdfaMatrix cross_dev = Q_cdev.mdfaMatrixMultTransB(des_mat);  
+		  cross_dev.transpose(des_mat);
+		  
 		  Q_smooth.mdfaMatrixAdd(Q_decay);
 		  Q_smooth.mdfaMatrixAdd(Q_cross);	        
 	  }
-	  else 
-	  {Q_smooth.mdfaMatrixAdd(Q_decay);}  
-	    
-	    
-	    
-	    
-	    
+	  else {
+		  Q_smooth.mdfaMatrixAdd(Q_decay);
+	  }  
+	       
+	}
+	
+
+
+
+	
+	
+	private MdfaMatrix getQDeviation() {
+		
+		   int ncols,start;	      
+		   int L = anyMDFA.getFilterLength();
+		   int nseries = anyMDFA.getNSeries();
+		   
+		   ncols = L*nseries;
+		   MdfaMatrix Q_cdev_orig = new MdfaMatrix(ncols, ncols);
+		   MdfaMatrix eye = new MdfaMatrix(ncols, ncols);
+		   
+		   for(int i = 0; i < ncols; i++) {
+			   eye.mdfaMatrixSet(i, i, 1.0);
+		   }
+		   
+		   for(int i=0; i < L; i++) {
+			   
+			   Q_cdev_orig.mdfaMatrixSet(i, i, 1.0);
+			   Q_cdev_orig.mdfaMatrixSet(i, L+i, -1.0);
+		   }
+		   	 
+		   for(int j=1; j < nseries; j++) { 
+		     
+			 start = j*L; 
+		     for(int i=0; i < L; i++) {
+		    	 
+		    	 Q_cdev_orig.mdfaMatrixSet(start + i, i, 1.0);       
+		    	 Q_cdev_orig.mdfaMatrixSet(start + i, start + i, 1.0); 
+		    	 Q_cdev_orig.mdfaMatrixSet(i, start + i, -1.0);      
+		     } 
+		   }		 
+		   Q_cdev_orig.mdfaSolve(eye);		 
+		   return eye;
 	}
 	
 	
