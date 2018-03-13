@@ -2,6 +2,8 @@ package ch.imetrica.mdfatrader.series;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.jfree.ui.RefineryUtilities;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.csvreader.CsvReader;
@@ -21,6 +23,29 @@ public class TargetSeries implements MdfaSeries {
 	private Transform seriesTransform;
     private String name;
 	
+    
+    /**
+     * 
+     * A TargetSeries with an empty TimeSeries<double[]> and a 
+     * initiated fractional differencing weight set. Raw time series
+     * values are ready to be added
+     * 
+     * @param d A differencing operater d such that 0 <= d < =1.
+     * 			In the case that d=0 no differencing is applied. In the case d=1 is 
+     * 			just standard backward differencing.
+     * 
+     * @param log Log values applied to raw time series
+     * 
+     * @param name The name of the target series
+     */
+    public TargetSeries(double d, boolean log, String name) {
+    	
+    	seriesTransform = new Transform(d, log);
+    	timeSeries = new TimeSeries<double[]>();
+    	this.name = name;
+    }
+    
+    
 	/**
      * TargetSeries is a type of time series which has two components:
      * The original time series, and the transformed time series.
@@ -219,7 +244,9 @@ public class TargetSeries implements MdfaSeries {
 			 testFracDiff[0] = new TargetSeries(rawSeries, 0.0, true);
 			 testFracDiff[1] = new TargetSeries(rawSeries, 0.4, true);
 			 testFracDiff[2] = new TargetSeries(rawSeries, 1.0, true);
-
+			 testFracDiff[0].setDateFormat(DateTimeFormat.forPattern("dd.MM.yyyy"));
+			 testFracDiff[1].setDateFormat(DateTimeFormat.forPattern("dd.MM.yyyy"));
+			 testFracDiff[2].setDateFormat(DateTimeFormat.forPattern("dd.MM.yyyy"));
 				
 			 TargetSeries.plotMultipleSeries(testFracDiff);
 			 
@@ -269,6 +296,10 @@ public class TargetSeries implements MdfaSeries {
         	throw new Exception("No DateTime format defined yet");
         }		
 		return formatter;
+	}
+	
+	public DateTime getDateTime(int i) {
+		return formatter.parseDateTime(timeSeries.get(i).getDateTime());
 	}
 
 

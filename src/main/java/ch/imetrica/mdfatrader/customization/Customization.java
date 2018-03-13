@@ -132,7 +132,7 @@ public class Customization {
 		int L       = anyMDFA.getFilterLength();
 		int nseries = anyMDFA.getNSeries();		
 		int N = anyMDFA.getSeriesLength();
-		int K = (int)Math.ceil(N/2.0);
+		int K = (int)(N/2.0);
 		int K1 = K+1;
 		
 		REX = new MdfaMatrix(K1, nseries*L);
@@ -155,7 +155,8 @@ public class Customization {
 		
 		
 		if(anySpectralDensity.size() != anyMDFA.getNSeries()) {
-			throw new Exception("Number of time series does not equal number of DFTs"); 
+			throw new <NonconformativeDataException>Exception("Number of time series does not equal number of DFTs. Must have " + 
+		                         anyMDFA.getNSeries() + " instead of " + anySpectralDensity.size()); 
 		}
 		
 		double lambda = anyMDFA.getLambda();
@@ -165,7 +166,7 @@ public class Customization {
 		int L         = anyMDFA.getFilterLength();
 		
 		
-		int K = (int)Math.ceil(N/2.0);
+		int K = (int)(N/2.0);
 		int K1 = K+1;
 		int targetIndx = 0;
 		

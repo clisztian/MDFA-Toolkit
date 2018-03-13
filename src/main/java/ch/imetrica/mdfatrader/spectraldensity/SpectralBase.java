@@ -12,6 +12,7 @@ import com.csvreader.CsvReader;
 import ch.imetrica.mdfatrader.series.MdfaSeries;
 import ch.imetrica.mdfatrader.series.MdfaSeries.SeriesType;
 import ch.imetrica.mdfatrader.series.MultivariateSeries;
+import ch.imetrica.mdfatrader.series.SignalSeries;
 import ch.imetrica.mdfatrader.series.TargetSeries;
 import ch.imetrica.mdfatrader.series.TimeSeries;
 import ch.imetrica.mdfatrading.mdfa.MDFABase;
@@ -128,12 +129,13 @@ public class SpectralBase {
 	 *     to be used for the computing the signal
 	 * @throws Exception 
 	 */
-	public void addMultivariateSeries(MultivariateSeries anySeries) throws Exception {
+	public void addMultivariateSeries(MultivariateSeries signals) throws Exception {
 		
-		int M = anySeries.size();
+		int M = signals.size();
+
 		for(int i = 0; i < M; i++) {
-			if(anySeries.getSeries(i).getSeriesType() == SeriesType.SIGNAL) {
-				addSeries(anySeries.getSeries(i));
+			if(signals.getSeries(i).getSeriesType() == SeriesType.SIGNAL) {
+				addSeries(((SignalSeries)signals.getSeries(i)).getTargetSeries());
 			}
 		}
 	}

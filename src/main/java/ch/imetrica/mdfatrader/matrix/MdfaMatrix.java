@@ -97,14 +97,15 @@ public class MdfaMatrix {
 		
 		double sum = 0; 
 		int nCols = this.anymatrix.numColumns();
-		
-		if(!normalize) {
-		   nCols = 1;
-		}
 
 		for(int i = 0; i < nCols; i++) {
 			sum += this.anymatrix.get(i, i);
 		}
+		
+		if(!normalize) {
+			nCols = 1;
+	    }
+		
 		return sum/(double)nCols;
 	}
 	
@@ -191,6 +192,17 @@ public class MdfaMatrix {
 		return sum;
 	}
 
+	public double expectation() {
+		  
+		double sum = 0; 
+		for(int i = 0; i < this.nRows; i++) {
+			for(int j = 0; j < this.nColumns; j++) {
+				sum += this.getMatrix().get(i, j)*i;
+			}
+		}
+		return sum;
+	}
+	
 	/**
 	 * 
 	 * Gets a subarray from a given column of the matrix.
@@ -214,7 +226,7 @@ public class MdfaMatrix {
 		double[] subset = new double[size];
 		
 		for(int i = from; i < to; i++) {
-			subset[i-from] = this.mdfaMatrixGet(column, i);
+			subset[i-from] = this.mdfaMatrixGet(i, column);
 		}
 		return subset;		
 	}

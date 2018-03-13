@@ -203,5 +203,65 @@ public class MultivariateSeries {
 		return anySeries.get(i);
 	}
 	
+	/**
+	 * 
+	 * Print all the MDFA coefficients for each signal in 
+	 * this multivariate series
+	 */
+	public void printMDFACoeffs() {
+		
+		for(int i = 0; i < anySeries.size(); i++) {
+			
+			if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
+				System.out.println(((SignalSeries) anySeries.get(i)).coeffsToString());
+			}
+		}
+	}
+	
+	public double sumAllCoefficients() {
+		
+		double sum = 0;
+		for(int i = 0; i < anySeries.size(); i++) {
+			
+			if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
+				sum += ((SignalSeries) anySeries.get(i)).sumCoeffs();
+			}
+		}
+		return sum;
+	}
+	
+	/**
+	 * 
+	 * Returns an arrayList of the MDFA coefficients for each signal
+	 * series in this MultivariateSeries  
+	 *  
+	 * @return 
+	 *   ArrayList<double[]> a list of the coefficients for each 
+	 *   signal series in this multivariate series
+	 *    
+	 */
+	public ArrayList<double[]> getMDFACoeffs() {
+		
+		ArrayList<double[]> allCoeffs = new ArrayList<double[]>();
+		
+		for(int i = 0; i < anySeries.size(); i++) {
+			
+			if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
+				allCoeffs.add(((SignalSeries) anySeries.get(i)).getCoeffs());
+			}
+		}	
+		return allCoeffs;
+	}
+	
+	public void plotSignals() throws Exception {
+		
+         for(int i = 0; i < anySeries.size(); i++) {
+			
+			if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
+				((SignalSeries) anySeries.get(i)).plotSignal();
+			}
+		}
+	}
+	
 	
 }

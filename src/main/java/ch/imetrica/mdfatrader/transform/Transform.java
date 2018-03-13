@@ -190,32 +190,35 @@ public class Transform {
 		
 		int N = timeSeries.size();
 		
-		if(d < 1 && d > 0) {
-			
-			double sum = 0;
-			int w_length = f_weights.length;
-			int filter_length = Math.min(N, w_length);
-			
-		    sum = 0;
-			for (int l = 0; l < filter_length; l++) {
-					sum = sum + f_weights[l]*baseTransform(timeSeries.get(N - l - 1).getValue()[1]);
-			}			
-			timeSeries.get(N-1).getValue()[0] = sum;				
-		}
-		else if(d == 1) {
-			
-
-				double v = baseTransform(timeSeries.get(N - 1).getValue()[1]) - 
-						baseTransform(timeSeries.get(N - 2).getValue()[1]);
+		if(N > 3) {
+		
+			if(d < 1 && d > 0) {
 				
-				timeSeries.get(N-1).getValue()[0] = v;			
+				double sum = 0;
+				int w_length = f_weights.length;
+				int filter_length = Math.min(N, w_length);
+				
+			    sum = 0;
+				for (int l = 0; l < filter_length; l++) {
+						sum = sum + f_weights[l]*baseTransform(timeSeries.get(N - l - 1).getValue()[1]);
+				}			
+				timeSeries.get(N-1).getValue()[0] = sum;				
+			}
+			else if(d == 1) {
+				
+	
+					double v = baseTransform(timeSeries.get(N - 1).getValue()[1]) - 
+							baseTransform(timeSeries.get(N - 2).getValue()[1]);
+					
+					timeSeries.get(N-1).getValue()[0] = v;			
+			}
+			else {
+				
+				double v = baseTransform(timeSeries.get(N - 1).getValue()[1]);			
+				timeSeries.get(N-1).getValue()[0] = v;
+										
+			}	
 		}
-		else {
-			
-			double v = baseTransform(timeSeries.get(N - 1).getValue()[1]);			
-			timeSeries.get(N-1).getValue()[0] = v;
-									
-		}				
 	}
 
 	/**

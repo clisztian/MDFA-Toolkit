@@ -13,6 +13,24 @@ import com.csvreader.CsvReader;
 import ch.imetrica.mdfatrader.unbiased.WhiteNoiseFilter;
 import ch.imetrica.mdfatrading.plotutil.TimeSeriesPlot;
 
+
+/**
+ * 
+ * An MdfaSeries that contains both a target series for 
+ * filtering and it's resulting signal
+ * 
+ * The signal series holds two time series types which are linked
+ * by the datetime stamp. The target series holds the raw and 
+ * transformed series and the signal series in a separate but linked 
+ * TimeSeries<Double>. The signal is computed using the coeffs 
+ * double array, which are real-time signal coefficients. The signal 
+ * will only begin registering signal values once the coeffs array 
+ * has been defined. 
+ * 
+ * 
+ * @author Christian D. Blakely (clisztian@gmail.com)
+ *
+ */
 public class SignalSeries implements MdfaSeries {
 
 	/**
@@ -25,7 +43,6 @@ public class SignalSeries implements MdfaSeries {
 	private TimeSeries<Double> signalSeries;
 	private TargetSeries target;
 	private double[] coeffs;
-
 	private String name;
 	
 	
@@ -190,9 +207,9 @@ public class SignalSeries implements MdfaSeries {
 	@Override
 	public void addValue(double val, String date) {
 		
-		if(coeffs != null && target != null) {
-			
-			target.addValue(val, date);
+		target.addValue(val, date);
+		
+		if(coeffs != null) {
 			
 			int N = target.size();
 			int filter_length = Math.min(N, coeffs.length);
@@ -200,14 +217,13 @@ public class SignalSeries implements MdfaSeries {
 			for (int l = 0; l < filter_length; l++) {
 				sum = sum + coeffs[l]*target.getTargetValue(N - l - 1);
 			}
-			signalSeries.add(new TimeSeriesEntry<Double>(target.getTargetDate(N - 1), sum));
-			
-		}		
+			signalSeries.add(new TimeSeriesEntry<Double>(target.getTargetDate(N - 1), sum));	
+		}
 	}
 
 	@Override
 	public TimeSeriesEntry<Double> getLatest() {
-		return signalSeries.get(signalSeries.size() - 1);
+		return target.getLatest();
 	}
 
 	@Override
@@ -292,15 +308,36 @@ public class SignalSeries implements MdfaSeries {
 	}
 	
 	
-    public static void plotSignal(SignalSeries signal) {
+    public static void plotSignal(SignalSeries signal) throws Exception {
 		
+      if(signal.signalSeries.size() > 10) {	
 		final String title = "EURUSD frac diff";
         final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, signal);
         eurusd.pack();
         RefineryUtilities.positionFrameRandomly(eurusd);
         eurusd.setVisible(true);
+      }
+      else {
+    	  System.out.println("Need more than 10 signal observations");
+      }
 		
 	}
+    
+    public void plotSignal() throws Exception {
+    
+     if(this.signalSeries.size() > 10) {	
+    
+    	final String title = "EURUSD frac diff";
+        final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, this);
+        eurusd.pack();
+        RefineryUtilities.positionFrameRandomly(eurusd);
+        eurusd.setVisible(true);
+     }
+     else {
+   	  System.out.println("Need more than 10 signal observations");
+     }
+     
+    }
     
     public String toString() {
     	
@@ -312,10 +349,39 @@ public class SignalSeries implements MdfaSeries {
 		return tostring;
     }
 	
+   
+    
+    /**
+     * 
+     * Returns the ith value of the target series
+     * for this signal 
+     * 
+     * @param index i
+     *   The ith index in this target
+     *   
+     * @return the ith target value from the 
+     *   stationary series
+     * 
+     * 
+     */
 	public double getTargetValue(int i) {
 		return target.getTargetValue(i);
 	}
 	
+	public String getTargetDate(int i) {
+		return target.getTargetDate(i);
+	}
+	
+	/**
+	 * Returns the target series for this signal series
+	 * for use in recomputing the filter coefficients
+	 * 
+	 * @return
+	 *    target series of this signal series
+	 */
+	public TargetSeries getTargetSeries(){
+		return this.target;
+	}
 	
 	
 	public static void main(String[] args) {
@@ -391,6 +457,32 @@ public class SignalSeries implements MdfaSeries {
 		return name;
 	}
 
+	
+	public double[] getCoeffs() {
+		return coeffs;
+	}
+	
+	public String coeffsToString() {
+		
+		String bs = "";
+		double sum = 0;
+		
+		for(int i = 0; i < coeffs.length; i++) {
+			bs += coeffs[i] + "\n";
+			sum += coeffs[i];
+		}	
+		return bs += "sum: " + sum + "\n";
+	}
+	
+	public double sumCoeffs() {
+		
+		double sum = 0;
+		
+		for(int i = 0; i < coeffs.length; i++) {
+			sum += coeffs[i];
+		}	
+		return sum;
+	}
 	
 
 }

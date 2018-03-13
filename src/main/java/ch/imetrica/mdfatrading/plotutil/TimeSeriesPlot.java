@@ -52,7 +52,7 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	        
 	    }
 	    
-	    public TimeSeriesPlot(final String title, SignalSeries signal) {
+	    public TimeSeriesPlot(final String title, SignalSeries signal) throws Exception {
 	        
 	        super(title);
 	        final XYDataset dataset = createDataset(title, signal);
@@ -65,23 +65,30 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	    }
 	    
 	       
-	    private XYDataset createDataset(String title, SignalSeries signal) {
+	    private XYDataset createDataset(String title, SignalSeries signal) throws Exception {
 			
 	    	TimeSeriesCollection dataset = new TimeSeriesCollection();
 	    	
 	    	final TimeSeries mySeries = new TimeSeries("EURUSD series");
 	    	final TimeSeries mySignal = new TimeSeries("Signal");
 	    	
-	    	for (int i = 200; i < signal.size(); i++) {
+	    	for (int i = 0; i < signal.size(); i++) {
 	        	
 	            try {
 	            	
 	                double value = signal.getSignalValue(i);
-	                double tsvalue = signal.getTargetValue(i);
+	                String sigDate = signal.getSignalDate(i);
+	                double tsvalue = signal.getTargetValue(signal.getTargetSeries().size() - signal.size() + i);
+	                String tsDate = signal.getTargetDate(signal.getTargetSeries().size() - signal.size() + i);
 	                
-	                DateTime sigDateTime = signal.getSignalDateTime(i);
+	                if(!sigDate.equals(tsDate)) {
+	                	throw new Exception("Datest don't match");
+	                }
+
+	                DateTime sigDateTime = signal.getSignalDateTime(i);	                
+	                Day current = new Day(sigDateTime.toDate());
 	                
-	                Second current = new Second(sigDateTime.toDate());
+	                //Second current = new Second(sigDateTime.toDate());
 	                
 	                mySignal.add(current, value);
 	                mySeries.add(current, tsvalue);
@@ -115,7 +122,7 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	        final ChartPanel chartPanel = new ChartPanel(chart);
 	        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
 	        chartPanel.setMouseZoomable(true, false);
-	        setContentPane(chartPanel);			// TODO Auto-generated constructor stub
+	        setContentPane(chartPanel);			
 		}
 
 		private XYDataset createDataset(String title, double[] prdx) {
@@ -148,10 +155,9 @@ public class TimeSeriesPlot extends ApplicationFrame {
 		            try {
 		            	
 		                double value = collection[k].getTargetValue(i);
-		                String[] day = collection[k].getTargetDate(i).split("[.]+");
 		                
-		                Day current = new Day(new Integer(day[0]).intValue(), new Integer(day[1]).intValue(), 
-		                		              new Integer(day[2]).intValue());
+		                DateTime myDay = collection[k].getDateTime(i);       
+		                Day current = new Day(myDay.toDate());	 
 		                
 		                series.add(current, value);
 		            }
@@ -197,11 +203,8 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	            try {
 	            	
 	                double value = target.getTargetValue(i);
-	                String[] day = target.getTargetDate(i).split("[.]+");
-	                
-	                Day current = new Day(new Integer(day[0]).intValue(), new Integer(day[1]).intValue(), 
-	                		              new Integer(day[2]).intValue());
-	                
+	                DateTime myDay = target.getDateTime(i);       
+	                Day current = new Day(myDay.toDate());	                    
 	                series.add(current, value);
 	            }
 	            catch (SeriesException e) {
