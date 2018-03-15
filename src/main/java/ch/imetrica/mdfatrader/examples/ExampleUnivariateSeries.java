@@ -14,7 +14,7 @@ import ch.imetrica.mdfatrader.targetfilter.TargetFilter;
 import ch.imetrica.mdfatrading.mdfa.MDFABase;
 import ch.imetrica.mdfatrading.mdfa.MDFASolver;
 
-public class ExampleSignalSeries {
+public class ExampleUnivariateSeries {
 	
 	
 	
@@ -31,12 +31,12 @@ public class ExampleSignalSeries {
 		int i1					= 0;
 		int i2					= 0;
 		double lag				= 0.0;		
-		double cutoff			= Math.PI/6;	
-		double alpha			= 1.0;	
+		double cutoff			= Math.PI/5;	
+		double alpha			= 10.0;	
 		double lambda			= 1.0;
-		double smooth			= 0.01;		
-		double decayStrength	= 0.1;
-		double decayStart		= 0.1;
+		double smooth			= 0.10;		
+		double decayStrength	= 0.01;
+		double decayStart		= 0.01;
 		double crossCorr		= 0.9;
 		double shift_const		= 1.0;
 		
@@ -67,10 +67,14 @@ public class ExampleSignalSeries {
 		CsvFeed marketDataFeed = new CsvFeed("data/AAPL.IB.dat", "dateTime", "close");
 		
 		/* Create empty target series */
-		SignalSeries aaplSignal = new SignalSeries(new TargetSeries(0.1, true, "AAPL"), "AAPL");	
+		SignalSeries aaplSignal = new SignalSeries(new TargetSeries(1.0, true, "AAPL"), "AAPL");	
 		aaplSignal.setDateFormat(DateTimeFormat.forPattern("yyyy-MM-dd"));
 
 		MultivariateSeries multiSeries = new MultivariateSeries(anyMDFA, mySolver);
+		multiSeries.setDateFormat(DateTimeFormat.forPattern("yyyy-MM-dd"));
+		
+		
+		
 		multiSeries.addSeries(aaplSignal);
 		
 		for(int i = 0; i < MAX_OBS; i++) {
@@ -81,16 +85,18 @@ public class ExampleSignalSeries {
 		}
 		
 		multiSeries.computeFilterCoefficients();
-		multiSeries.plotSignals();
 		
-        for(int i = 0; i < 300; i++) {
+        for(int i = 0; i < 500; i++) {
 			
 			TimeSeriesEntry<Double> observation = marketDataFeed.getNextObservation();
 			multiSeries.addValue(new double[]{observation.getValue()}, observation.getDateTime());
 			
 		}
         
-        //multiSeries.plotSignals();
+        multiSeries.printSignal();
+        multiSeries.chopFirstObservations(50);
+        multiSeries.plotAggregateSignal();
+
 		
 
 

@@ -7,39 +7,35 @@ import org.joda.time.format.DateTimeFormatter;
 
 /**
  * 
- * 	
-	  
-	 * Basic interface to hold time series and 
-	 * time series meta-information
+ * Basic interface to hold time series and 
+ * time series meta-information
 	 
-	 * Meta-information can include  
-	 * I. Type of series
-	 * 
-	 *  1) price
-	 *  2) target series (stationary) 
-	 *  3) volatility
-	 *  5) explanatory series (stationary) 
-	 *  6) MdfaSignal 
-	 *  7) Other technical signals
-	 * 
-	 * II. Mdfa Filter coefficients
-	 *  
-	 * III. Transform/Differencing  
-	 *  
-	 * IV. DateTime formatter common formats
-	 *     Format("yyyy-MM-dd HH:mm:ss");
-	 *     Format("yyyy-MM-dd_HH:mm:ss");
-	 *     Format("dd.MM.yyyy"); 
-	 *  
-	 
+ * Meta-information can include  
+ * I. Type of series
+ * 
+ *  1) price
+ *  2) target series (stationary) 
+ *  3) volatility
+ *  5) explanatory series (stationary) 
+ *  6) MdfaSignal 
+ *  7) Other technical signals
+ * 
+ * II. Mdfa Filter coefficients
+ *  
+ * III. Transform/Differencing  
+ *  
+ * IV. DateTime formatter common formats
+ *     Format("yyyy-MM-dd HH:mm:ss");
+ *     Format("yyyy-MM-dd_HH:mm:ss");
+ *     Format("dd.MM.yyyy"); 
+ *  	 
  * 
  * 
  * @author Christian D. Blakely (clisztian@gmail.com)
  *
  */
-public interface MdfaSeries extends Serializable {
 
-	
+public interface MdfaSeries extends Serializable {
 
 	
 	public enum SeriesType {
@@ -52,7 +48,6 @@ public interface MdfaSeries extends Serializable {
 		TECHNICAL;			/** Any other technical indicator */
 	}
 	
-
 	
 	/**
      * Adds a raw time series value in the form of a 
@@ -92,9 +87,34 @@ public interface MdfaSeries extends Serializable {
      * @returns TimeSeriesEntry<Double>
      */
 	TimeSeries<Double> getLatestValues(int n);
+	
+	/**
+	 * Get the series type of the MdfaSeries 
+	 * 
+	 * @return SeriesType
+	 */
 	SeriesType getSeriesType();
+	
+	/**
+	 * Set a joda time datetime formatter for 
+	 * translating string format to datetime objects
+	 * 
+	 * @param anyformat 
+	 */
 	void setDateFormat(DateTimeFormatter anyformat);
+	
+	/**
+	 * Throws an exception if format doesn't exist
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
 	DateTimeFormatter getDateFormat() throws Exception;
+	
+	/**
+	 * Current size of this time series
+	 * @return size
+	 */
 	int size();
 	
 	/**
@@ -114,9 +134,27 @@ public interface MdfaSeries extends Serializable {
 	 */
 	String getName();
 
+	/**
+	 * Gets the latest value in this time series 
+	 * without the String date. For a signalSeries, this will 
+	 * be the underlying target series that this signal is 
+	 * connected to. For a priceseries, this will simply be the price
+	 * @param i
+	 * @return Value at i
+	 */
 	double getTargetValue(int i);
 	
-	
+	/**
+	 * Eliminates the first n observations 
+	 * in the time series, which are typically not 
+	 * needed. A typical n value is L, the length 
+	 * of the filter
+	 * 
+	 * @param n
+	 *   The number of beginning observations to 
+	 *   eliminate
+	 */
+	void chopFirstObservations(int n);
 
 	
 }

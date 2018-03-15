@@ -47,7 +47,8 @@ public class SignalSeries implements MdfaSeries {
 	
 	
 	public SignalSeries(double[] coeffs) {			
-		this.coeffs = coeffs;			
+		this.coeffs = coeffs;	
+		signalSeries = new TimeSeries<Double>();
 	}
 
 	/**
@@ -62,7 +63,8 @@ public class SignalSeries implements MdfaSeries {
 	public SignalSeries(TargetSeries anytarget) {
 		
 		this.coeffs = null;
-		this.target = anytarget;		
+		this.target = anytarget;
+		signalSeries = new TimeSeries<Double>();
 	}
 	
 	
@@ -82,6 +84,7 @@ public class SignalSeries implements MdfaSeries {
 		this.coeffs = null;
 		this.target = anytarget;	
 		this.name = name;
+		signalSeries = new TimeSeries<Double>();
 	}
 	
 	
@@ -187,8 +190,7 @@ public class SignalSeries implements MdfaSeries {
 			for (int l = 0; l < filter_length; l++) {
 				sum = sum + coeffs[l]*target.getTargetValue(i - l);
 			}
-			signalSeries.add(new TimeSeriesEntry<Double>(target.getTargetDate(i), sum));
-			
+			signalSeries.add(new TimeSeriesEntry<Double>(target.getTargetDate(i), sum));	
 		}		
 	}
 	
@@ -251,9 +253,20 @@ public class SignalSeries implements MdfaSeries {
      *          int the current size of the time series
      */
 	public int size() {
-		return signalSeries.size();
+		return target.size();
 	}
 
+	/**
+     * Returns the size of the signal series. If coefficients
+     * calculated for this signal, size should equal size 
+     * of target
+     * @return 
+     *          int the current size of the signal series
+     */
+	public int signalSize() {
+		return signalSeries.size();
+	}
+	
 	/**
      * Returns the value of the target series at index i
      * 
@@ -263,7 +276,38 @@ public class SignalSeries implements MdfaSeries {
      *          double value at index i
      */
 	public double getSignalValue(int i) {
+		if(signalSeries == null || signalSeries.isEmpty()) {
+			return 0;
+		}
 		return signalSeries.get(i).getValue();
+	}
+	
+	/**
+	 * 
+	 * Returns the latest signal observation as a TimeSeriesEntry<Double>
+	 * value
+	 * 
+	 * @return TimeSeriesEntry<Double>
+	 */
+	public TimeSeriesEntry<Double> getLatestSignalObservation() {
+		if(signalSeries == null || signalSeries.isEmpty()) {
+			return new TimeSeriesEntry<Double>("", 0.0);
+		}
+		return signalSeries.get(signalSeries.size()-1);
+	}
+	
+	/**
+	 * 
+	 * Returns the latest signal value as a double
+	 * value
+	 * 
+	 * @return double
+	 */
+	public double getLatestSignalValue() {
+		if(signalSeries == null || signalSeries.isEmpty()) {
+			return 0.0;
+		}
+		return signalSeries.get(signalSeries.size()-1).getValue();
 	}
 
 	/**
@@ -307,6 +351,7 @@ public class SignalSeries implements MdfaSeries {
 		return formatter.parseDateTime(getSignalDate(i));
 	}
 	
+
 	
     public static void plotSignal(SignalSeries signal) throws Exception {
 		
@@ -482,6 +527,16 @@ public class SignalSeries implements MdfaSeries {
 			sum += coeffs[i];
 		}	
 		return sum;
+	}
+
+	@Override
+	public void chopFirstObservations(int n) {
+		target.chopFirstObservations(n);
+		
+		int chopped = Math.min(n, signalSeries.size());
+		for(int i = 0; i < chopped; i++) {
+			signalSeries.remove(0);
+		}		
 	}
 	
 

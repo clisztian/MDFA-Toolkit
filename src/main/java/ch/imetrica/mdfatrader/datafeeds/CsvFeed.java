@@ -137,6 +137,7 @@ public class CsvFeed {
 		double[] prices = new double[marketDataFeeds.length];
 		String[] timestamps = new String[marketDataFeeds.length];
 		
+		marketDataFeeds[0].readRecord();
 		double price = (new Double(marketDataFeeds[0].get(priceColumnName))).doubleValue();
 		String date_stamp = marketDataFeeds[0].get(dateColumnName);	
 		
@@ -145,6 +146,7 @@ public class CsvFeed {
 		
 		for(int i = 1; i < marketDataFeeds.length; i++) {
 			
+			marketDataFeeds[i].readRecord();
 			price = (new Double(marketDataFeeds[i].get(priceColumnName))).doubleValue();
 			date_stamp = marketDataFeeds[i].get(dateColumnName);		
 			if(!timestamps[0].equals(date_stamp)) {

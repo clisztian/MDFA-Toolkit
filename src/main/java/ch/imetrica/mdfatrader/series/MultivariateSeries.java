@@ -2,19 +2,42 @@ package ch.imetrica.mdfatrader.series;
 
 import java.util.ArrayList;
 
+import org.jfree.ui.RefineryUtilities;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+
 import ch.imetrica.mdfatrader.matrix.MdfaMatrix;
 import ch.imetrica.mdfatrader.series.MdfaSeries.SeriesType;
 import ch.imetrica.mdfatrader.spectraldensity.SpectralBase;
 import ch.imetrica.mdfatrading.mdfa.MDFABase;
 import ch.imetrica.mdfatrading.mdfa.MDFASolver;
+import ch.imetrica.mdfatrading.plotutil.TimeSeriesPlot;
 
 /**
  * 
- * A Multivariate time series holds a collection of MdfaSeries
- * including price, target, and explanatory series which act 
- * as input. The output series are the signal(s) which are automatically
- * computed once a set of coefficients for the target series has been 
- * given 
+ * A Multivariate time series holds a collection of information with the goal
+ * of providing a robust real-time signal or indicator that will be used for several
+ * purposes such as:
+ * 1) financial trading/investing on a given asset 
+ * 2) extracting signals or adjusting time series 
+ * 3) detecting turning points
+ * 4) classifying regimes in real-time 
+ * 
+ * The Multivariate time series object possesses several computational 
+ * components to serve helping engineer the above signal types. This includes 
+ * the following:
+ * 1) A list of @MdfaSeries which include MDFA signals, price information, 
+ *    target series, explanatory series, or any additional technical indicators
+ * 2) An aggregate real-time signal of the entire Multivariate series which 
+ *    serves as the aggregate signal of all the MDFA signals 
+ * 3) An MDFA solver object which holds the computational engine needed for constructing 
+ *    a real-time signal extraction process using MDFA
+ * 4) An MDFABase object which holds the meta-information for MDFA
+ * 5) A labelling timeSeries which is used for constructing a labeled time series
+ *    for the Machine Learning packages (recurrent neural networks, reinforcement learning, 
+ *    random forests, Xtreme learning). 
+ * 6) (Not yet implemented) A MasterSignal which serves as the head aggregate signal for the entire 
+ *    multivariate time series combining the MDFA and machine learning components
  *
  * 
  * @author Christian D. Blakely (clisztian@gmail.com)
@@ -23,14 +46,19 @@ import ch.imetrica.mdfatrading.mdfa.MDFASolver;
 public class MultivariateSeries {
 
 	
+	TimeSeries<double[]> labeledSignal;
+	TimeSeries<Double> aggregateSignal;
 	ArrayList<MdfaSeries> anySeries;
 	MDFASolver anySolver;
 	MDFABase anyMDFA;
+	DateTimeFormatter formatter;
 	
 	private int nSignals = 0;
+	private int targetIndex = 0;
 	
 	public MultivariateSeries(MDFABase anyMDFA, MDFASolver anySolver) {
 		
+		this.aggregateSignal = new TimeSeries<Double>();
 		this.anySeries = new ArrayList<MdfaSeries>();
 		this.anyMDFA = anyMDFA;
 		this.anySolver = anySolver;
@@ -54,7 +82,7 @@ public class MultivariateSeries {
 	public boolean addSeries(MdfaSeries series) {
 		
 		boolean success = true;
-		if(anySeries.size() > 0) {
+		if(anySeries.size() > 0 && series.size() > 0) {
 			
 			String datetime = series.getLatest().getDateTime();
 			
@@ -94,9 +122,15 @@ public class MultivariateSeries {
     		throw new Exception("Sizes of array and number of time series don't match");
     	}
     	
+    	double sigVal = 0;
     	for(int i = 0; i < anySeries.size(); i++) { 		
     		anySeries.get(i).addValue(val[i], date);
+    		
+    		if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
+				sigVal += ((SignalSeries) anySeries.get(i)).getLatestSignalValue();
+			}		
     	}
+    	aggregateSignal.add(new TimeSeriesEntry<Double>(date, sigVal));  	
     }
 
 	/**
@@ -117,9 +151,16 @@ public class MultivariateSeries {
     		throw new Exception("Sizes of array and number of time series don't match");
     	}
     	
+    	double sigVal = 0;
     	for(int i = 0; i < anySeries.size(); i++) { 		
     		anySeries.get(i).addValue(val.get(i), date);
+    		
+    		if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
+				sigVal += ((SignalSeries) anySeries.get(i)).getLatestSignalValue();
+			}		
     	}
+    	aggregateSignal.add(new TimeSeriesEntry<Double>(date, sigVal));
+    	
     }
     
     
@@ -137,12 +178,43 @@ public class MultivariateSeries {
 		for(int i = 0; i < anySeries.size(); i++) {
 			
 			if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
-				sigVal += ((SignalSeries) anySeries.get(i)).getSignalValue(i);
+				sigVal += ((SignalSeries) anySeries.get(i)).getLatestSignalObservation().getValue();
 			}
 		}
 		return sigVal;
 	}
     
+	
+	/**
+	 * Returns a timeSeriesEntry with the aggregate signal of
+	 * this multivariate time series and the target series that is 
+	 * being filtered. By default, the target series is typically 
+	 * the first signal/series in the multivariate series
+	 * 
+	 * @param i index of value
+	 * @return TimeSeriesEntry<double[]> 
+	 * @throws Exception is thrown if for some reason the time stamps of the 
+	 * 		   given value do not match. Should not happen.
+	 */
+	public TimeSeriesEntry<double[]> getSignalTargetPair(int i) throws Exception {
+		
+		
+		 String datetime = aggregateSignal.get(i).getDateTime();
+		 double sigval = aggregateSignal.get(i).getValue();
+		 
+		 String tsdatetime = ((SignalSeries) anySeries.get(targetIndex)).getTargetDate(i);
+		 double val = ((SignalSeries) anySeries.get(targetIndex)).getTargetValue(i);
+		 
+		 
+		 if(!datetime.equals(tsdatetime)) {
+			 throw new Exception("Dates do not match: " + datetime + " " + tsdatetime);
+		 }
+		 
+		 double[] vals = new double[]{val, sigval};
+		 return (new TimeSeriesEntry<double[]>(datetime, vals));
+	}
+	
+	
 	/**
 	 * 
 	 * Compute the MDFA filter coefficients given the most 
@@ -160,11 +232,15 @@ public class MultivariateSeries {
 		
 		int signal = 0;
 		int L = anyMDFA.getFilterLength();
+		this.aggregateSignal = new TimeSeries<Double>();
 		for(int i = 0; i < anySeries.size(); i++) {
 			
 			if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
+				
 				double[] sig_coeffs = bcoeffs.getSubsetColumn(0, signal*L, signal*L + L);
 				((SignalSeries) anySeries.get(i)).setMDFAFilterCoefficients(sig_coeffs);
+				
+				addSignalToAggregate((SignalSeries) anySeries.get(i));
 				signal++;
 			}	
 		}
@@ -263,5 +339,83 @@ public class MultivariateSeries {
 		}
 	}
 	
+	public void printSignal() {
+		
+		SignalSeries sig = (SignalSeries) anySeries.get(0);
+		
+		System.out.println("SigSize: " + sig.signalSize() + ", targetSize: " + sig.size());
+	}
+	
+	
+	
+	public void plotAggregateSignal() throws Exception {
+		
+		if(this.aggregateSignal.size() > 10) {	
+		   
+			
+			
+	    	final String title = "EURUSD frac diff";
+	        final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, this);
+	        eurusd.pack();
+	        RefineryUtilities.positionFrameRandomly(eurusd);
+	        eurusd.setVisible(true);
+	     }
+	     else {
+	   	  System.out.println("Need more than 10 signal observations");
+	     }
+		
+	}
+	
+	public void chopFirstObservations(int n) {
+		
+		for(int i = 0; i < anySeries.size(); i++) {
+			anySeries.get(i).chopFirstObservations(n);
+		}
+		if(aggregateSignal != null && aggregateSignal.size() > 0) {
+			
+			int chopped = Math.min(n, aggregateSignal.size());
+			for(int i = 0; i < chopped; i++) {
+				aggregateSignal.remove(0);
+			}
+		}
+	}
+		
+	public DateTimeFormatter getFormatter() {
+		return formatter;
+	}
+	
+	public void setDateFormat(DateTimeFormatter formatter) {
+		this.formatter = formatter;
+	}
+	
+	private void addSignalToAggregate(SignalSeries signal) throws Exception {
+		
+		if(aggregateSignal.isEmpty()) {				
+			for(int i = 0; i < signal.size(); i++) {
+				
+			      String current = signal.getSignalDate(i);	
+			      double val = signal.getSignalValue(i);
+			      aggregateSignal.add(new TimeSeriesEntry<Double>(current, val));
+			}		
+		}
+		else {
+			
+			for(int i = 0; i < signal.size(); i++) {
+				
+		      String current = signal.getSignalDate(i);	
+				
+			  if(current.equals(aggregateSignal.get(i).getDateTime())) {
+				  
+				  double val = aggregateSignal.get(i).getValue() + signal.getSignalValue(i);
+				  aggregateSignal.set(i, new TimeSeriesEntry<Double>(current, val));
+				  
+			  }
+			  else {
+				  throw new Exception("Dates do not match of the signals: " + current + " is not " + aggregateSignal.get(i).getDateTime());
+			  }
+ 			}
+			
+		}
+	}
 	
 }

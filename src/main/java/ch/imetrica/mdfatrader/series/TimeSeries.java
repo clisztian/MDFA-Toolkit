@@ -5,6 +5,14 @@ import java.util.Collection;
 
 import lombok.val;
 
+/**
+ * 
+ * The underlying TimeSeries class for all the time series types.
+ * 
+ * @author Christian D. Blakely (clisztian@gmail.com)
+ *
+ * @param <V>
+ */
 public class TimeSeries<V> extends ArrayList<TimeSeriesEntry<V>> {
 	
 	private static final long serialVersionUID = 4071035106419033490L;

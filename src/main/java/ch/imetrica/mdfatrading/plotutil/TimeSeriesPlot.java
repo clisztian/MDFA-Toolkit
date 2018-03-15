@@ -12,9 +12,13 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
+import ch.imetrica.mdfatrader.series.MultivariateSeries;
 import ch.imetrica.mdfatrader.series.SignalSeries;
 import ch.imetrica.mdfatrader.series.TargetSeries;
+import ch.imetrica.mdfatrader.series.TimeSeriesEntry;
 
 public class TimeSeriesPlot extends ApplicationFrame {
 
@@ -123,6 +127,54 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
 	        chartPanel.setMouseZoomable(true, false);
 	        setContentPane(chartPanel);			
+		}
+
+		public TimeSeriesPlot(String title, MultivariateSeries mySeries) throws Exception {
+			
+			super(title);
+	        final XYDataset dataset = createDataset(title, mySeries, mySeries.getFormatter());
+	        final JFreeChart chart = createChart(dataset);
+	        final ChartPanel chartPanel = new ChartPanel(chart);
+	        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
+	        chartPanel.setMouseZoomable(true, false);
+	        setContentPane(chartPanel);
+
+		}
+
+		private XYDataset createDataset(String title, MultivariateSeries series, DateTimeFormatter formatter) throws Exception {
+			
+			TimeSeriesCollection dataset = new TimeSeriesCollection();
+			final TimeSeries mySeries = new TimeSeries("EURUSD series");
+	    	final TimeSeries mySignal = new TimeSeries("Signal");
+
+            for (int i = 0; i < series.getSeries(0).size(); i++) {
+	        	
+	            try {
+	            	
+	            	TimeSeriesEntry<double[]> ts = series.getSignalTargetPair(i);
+	            	
+	                double value = ts.getValue()[0];
+	                double sigVal = ts.getValue()[1];
+	                String datetime = ts.getDateTime();
+	                
+	                DateTime sigDateTime = getSignalDateTime(datetime, formatter);	                
+	                Day current = new Day(sigDateTime.toDate());
+	                
+	                //Second current = new Second(sigDateTime.toDate());
+	                
+	                mySignal.add(current, value);
+	                mySeries.add(current, sigVal);
+	            }
+	            catch (SeriesException e) {
+	                System.err.println("Error adding to series");
+	            }
+	        }
+            dataset.addSeries(mySeries);
+	    	dataset.addSeries(mySignal);
+	    	
+	    	
+	    	return dataset;
+	    	
 		}
 
 		private XYDataset createDataset(String title, double[] prdx) {
@@ -261,4 +313,8 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	    }
 	
 	
+		public static DateTime getSignalDateTime(String date, DateTimeFormatter formatter) {
+			return formatter.parseDateTime(date);
+		}
+	    
 }

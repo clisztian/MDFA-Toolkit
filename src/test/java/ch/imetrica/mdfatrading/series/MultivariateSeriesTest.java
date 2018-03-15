@@ -88,6 +88,7 @@ public class MultivariateSeriesTest {
 		TimeSeries<Double> eemSeries = CsvFeed.getChunkOfData(0, 205, "data/EEM.IB.dat", "dateTime", "close");	
 		SignalSeries eem = new SignalSeries(new TargetSeries(eemSeries, .4, true), "GOOG");
 		
+		
 		assertFalse(multi.addSeries(eem));
 		
 		multi.computeFilterCoefficients();

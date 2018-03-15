@@ -11,7 +11,7 @@ public class PriceSeries implements MdfaSeries {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private final SeriesType seriesType = SeriesType.TARGET;
+	private final SeriesType seriesType = SeriesType.PRICE;
 	private DateTimeFormatter formatter;
 	TimeSeries<Double> timeSeries;
 	Transform seriesTransform;
@@ -110,5 +110,15 @@ public class PriceSeries implements MdfaSeries {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+
+	@Override
+	public void chopFirstObservations(int n) {
+		
+		int chopped = Math.min(n, timeSeries.size());
+		for(int i = 0; i < chopped; i++) {
+			timeSeries.remove(0);
+		}	
 	}
 }

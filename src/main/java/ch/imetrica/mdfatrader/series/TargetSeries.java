@@ -315,6 +315,16 @@ public class TargetSeries implements MdfaSeries {
 	}
 
 
+	@Override
+	public void chopFirstObservations(int n) {
+		
+		int chopped = Math.min(n, timeSeries.size());
+		for(int i = 0; i < chopped; i++) {
+			timeSeries.remove(0);
+		}	
+	}
+
+
 
 	
 
