@@ -25,56 +25,15 @@ import ch.imetrica.mdfa.spectraldensity.SpectralBase;
 public class MDFASolver {
 
 	
-	private Customization anyCustomization;
-	private Regularization anyReg;
+	private MDFAFactory anyMDFAFactory;
 	
+
 	
-	/**
-	* Constructs an MDFA solver given any customization and 
-	* regularization design matrices.
-	* 
-	* @param anyCustomization
-	*      Is an object of type Customization that
-	*      holds the Grammian matrix of the complex exponential 
-	*      basis functions. Also holds the right hand side of the 
-	*      system for the coefficients
-	*      
-	* @param anyReg 
-	*      Is the regularization object that holds the regularization matrices
-	*      for smooth, decay, and cross regularization
-	*/
-	
-	public MDFASolver(Customization anyCustomization, Regularization anyReg) {
-		this.anyCustomization = anyCustomization;
-		this.anyReg = anyReg;
+	public MDFASolver(MDFAFactory mdfa) {
+		this.anyMDFAFactory = mdfa;
 	}
 	
-	
-	/**
-	* Sets a new customization group
-	* 
-	* @param anyCustomization
-	*      Is an object of type Customization that
-	*      holds the Grammian matrix of the complex exponential 
-	*      basis functions. Also holds the right hand side of the 
-	*      system for the coefficients
-	*/
-	
-	public void setAnyCustomization(Customization anyCustomization) {
-		this.anyCustomization = anyCustomization;
-	}
-	
-	/**
-	* 
-	* Sets a new regulatization group
-	*  
-	* @param anyReg 
-	*      Is the regularization object that holds the regularization matrices
-	*      for smooth, decay, and cross regulatization
-	*/
-	public void setAnyRegularization(Regularization anyReg) {
-		this.anyReg = anyReg;
-	}
+
 	
 	/**
 	 * Updates the SpectralBase information in the customization 
@@ -92,7 +51,7 @@ public class MDFASolver {
 	 */
 	public void updateSpectralBase(SpectralBase anySpectralBase) throws Exception {
 		
-		anyCustomization.setSpectralBase(anySpectralBase);
+		anyMDFAFactory.getCustomization().setSpectralBase(anySpectralBase);
 	}
 	
 	
@@ -109,6 +68,9 @@ public class MDFASolver {
 	public MdfaMatrix solver() {
 	
 		double dev;
+		
+		Regularization anyReg = anyMDFAFactory.getRegularization();
+		Customization anyCustomization = anyMDFAFactory.getCustomization();
 		
 		MdfaMatrix des = anyReg.getQSmooth().mdfaMatrixMultTransB(anyReg.getDesignMatrix());
 		MdfaMatrix reg_mat = anyReg.getDesignMatrix().mdfaMatrixMult(des);
@@ -155,6 +117,10 @@ public class MDFASolver {
 
         return b_coeffs;
         
+	}
+
+	public MDFAFactory getMDFAFactory() {
+		return anyMDFAFactory;
 	}
         
 }

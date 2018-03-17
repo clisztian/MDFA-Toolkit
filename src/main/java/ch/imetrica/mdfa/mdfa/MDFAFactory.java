@@ -227,6 +227,7 @@ public class MDFAFactory {
 		
 		anyMDFA.setFilterLength(L);
 		anyCustom.adjustFilterLength(anyMDFA);
+		anyReg = new Regularization(anyMDFA);
 	}
 
 	/**
@@ -370,6 +371,11 @@ public class MDFAFactory {
 	
 	public final double getShift_constraint() {
 		return anyMDFA.getShift_constraint();
+	}
+
+
+	public void setCustomization(Customization anyCustom2) {
+		this.anyCustom = anyCustom2;
 	}
 	
 }

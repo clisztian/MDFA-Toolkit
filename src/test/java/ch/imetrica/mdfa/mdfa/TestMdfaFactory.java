@@ -1,27 +1,22 @@
-package ch.imetrica.mdfa.examples;
+package ch.imetrica.mdfa.mdfa;
+
+import static org.junit.Assert.*;
+
+import java.io.IOException;
 
 import org.joda.time.format.DateTimeFormat;
+import org.junit.Test;
 
-import ch.imetrica.mdfa.customization.Customization;
-import ch.imetrica.mdfa.customization.SmoothingWeight;
 import ch.imetrica.mdfa.datafeeds.CsvFeed;
-import ch.imetrica.mdfa.mdfa.MDFABase;
-import ch.imetrica.mdfa.mdfa.MDFAFactory;
-import ch.imetrica.mdfa.mdfa.MDFASolver;
-import ch.imetrica.mdfa.regularization.Regularization;
 import ch.imetrica.mdfa.series.MultivariateSeries;
 import ch.imetrica.mdfa.series.SignalSeries;
 import ch.imetrica.mdfa.series.TargetSeries;
 import ch.imetrica.mdfa.series.TimeSeriesEntry;
-import ch.imetrica.mdfa.targetfilter.TargetFilter;
 
-public class ExampleMultivariateSignal {
+public class TestMdfaFactory {
 
-	
-	private static int MAX_OBS = 400;
-
-	public static void main(String[] args) throws Exception {
-		
+	@Test
+	public void test() throws Exception {
 		
 		int nobs 				= 300;
 		int nseries 			= 3;
@@ -53,9 +48,8 @@ public class ExampleMultivariateSignal {
 		        crossCorr,
 		        shift_const);
 		
-		
-		MDFAFactory anyMDFAFactory = new MDFAFactory(anyMDFA);
-		MDFASolver mySolver = new MDFASolver(anyMDFAFactory);
+		MDFAFactory testMdfa = new MDFAFactory(anyMDFA);
+		MDFASolver mySolver = new MDFASolver(testMdfa);
 		
 		
 		String[] dataFiles = new String[3];
@@ -69,19 +63,15 @@ public class ExampleMultivariateSignal {
 		SignalSeries aaplSignal = new SignalSeries(new TargetSeries(0.9, true, "AAPL"), "yyyy-MM-dd");	
 		SignalSeries qqqSignal = new SignalSeries(new TargetSeries(0.9, true, "QQQ"), "yyyy-MM-dd");
 		SignalSeries spySignal = new SignalSeries(new TargetSeries(0.9, true, "SPY"), "yyyy-MM-dd");
-
-
-		
+				
 		MultivariateSeries multiSeries = new MultivariateSeries(anyMDFA, mySolver);
 		multiSeries.setDateFormat(DateTimeFormat.forPattern("yyyy-MM-dd"));
-		
-		
-		
+
 		multiSeries.addSeries(aaplSignal);
 		multiSeries.addSeries(qqqSignal);
 		multiSeries.addSeries(spySignal);
-		
-        for(int i = 0; i < MAX_OBS ; i++) {
+
+		for(int i = 0; i < 400; i++) {
 			
 			TimeSeriesEntry<double[]> observation = marketFeed.getNextMultivariateObservation();
 			multiSeries.addValue(observation.getValue(), observation.getDateTime());
@@ -89,18 +79,10 @@ public class ExampleMultivariateSignal {
 		}
 		
 		multiSeries.computeFilterCoefficients();
-		
-		for(int i = 0; i < 500; i++) {
-			
-			TimeSeriesEntry<double[]> observation = marketFeed.getNextMultivariateObservation();
-			multiSeries.addValue(observation.getValue(), observation.getDateTime());
-			
-		}
-		
-		multiSeries.chopFirstObservations(100);
-		multiSeries.plotAggregateSignal();
-		
+		multiSeries.getMDFAFactory().setFilterLength(1);
+		multiSeries.computeFilterCoefficients();
+		assertEquals(2, multiSeries.getMDFAFactory().getFilterLength());
+	
 	}
-	
-	
+
 }

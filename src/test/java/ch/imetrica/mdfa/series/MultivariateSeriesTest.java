@@ -10,6 +10,7 @@ import ch.imetrica.mdfa.customization.Customization;
 import ch.imetrica.mdfa.customization.SmoothingWeight;
 import ch.imetrica.mdfa.datafeeds.CsvFeed;
 import ch.imetrica.mdfa.mdfa.MDFABase;
+import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
 import ch.imetrica.mdfa.regularization.Regularization;
 import ch.imetrica.mdfa.series.MultivariateSeries;
@@ -68,11 +69,8 @@ public class MultivariateSeriesTest {
 		
 		
 		
-		SmoothingWeight myWeight = new SmoothingWeight(anyMDFA);
-		TargetFilter myTarget = new TargetFilter(anyMDFA);	
-		Regularization anyReg = new Regularization(anyMDFA);
-		Customization anyCustom = new Customization(anyMDFA, myWeight, myTarget);	
-		MDFASolver mySolver = new MDFASolver(anyCustom, anyReg);
+		MDFAFactory anyMDFAFactory = new MDFAFactory(anyMDFA);
+		MDFASolver mySolver = new MDFASolver(anyMDFAFactory);
 		
 		
 		MultivariateSeries multi = new MultivariateSeries(anyMDFA, mySolver);
@@ -143,11 +141,8 @@ public class MultivariateSeriesTest {
 		
 		
 		
-		SmoothingWeight myWeight = new SmoothingWeight(anyMDFA);
-		TargetFilter myTarget = new TargetFilter(anyMDFA);	
-		Regularization anyReg = new Regularization(anyMDFA);
-		Customization anyCustom = new Customization(anyMDFA, myWeight, myTarget);	
-		MDFASolver mySolver = new MDFASolver(anyCustom, anyReg);
+		MDFAFactory anyMDFAFactory = new MDFAFactory(anyMDFA);
+		MDFASolver mySolver = new MDFASolver(anyMDFAFactory);
 		
 		
 		MultivariateSeries multi = new MultivariateSeries(anyMDFA, mySolver);

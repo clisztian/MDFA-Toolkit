@@ -55,14 +55,15 @@ public class TestMdfaSolver {
 		
 		TimeSeries<Double> appleSeries = CsvFeed.getChunkOfData(0, 200, "data/AAPL.IB.dat", "dateTime", "close");	
 		SmoothingWeight myWeight = new SmoothingWeight(anyMDFA);
-		TargetFilter myTarget = new TargetFilter(anyMDFA);	
-		Regularization anyReg = new Regularization(anyMDFA);
-		
+		TargetFilter myTarget = new TargetFilter(anyMDFA);			
 		SpectralBase mySpectral = new SpectralBase(anyMDFA);
 		mySpectral.addSeries(new TargetSeries(appleSeries, .4, true));
 		
-		Customization anyCustom = new Customization(anyMDFA, myWeight, myTarget, mySpectral);	
-		MDFASolver mySolver = new MDFASolver(anyCustom, anyReg);
+		Customization anyCustom = new Customization(anyMDFA, myWeight, myTarget, mySpectral);			
+		MDFAFactory mdfaFactory = new MDFAFactory(anyMDFA);
+		mdfaFactory.setCustomization(anyCustom);
+		
+		MDFASolver mySolver = new MDFASolver(mdfaFactory);
 		
 		MdfaMatrix b = mySolver.solver();
 		

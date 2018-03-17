@@ -94,7 +94,7 @@ public class Regularization {
 	}
 	
 	
-	private void computeWeightMatrix() {
+	public void computeWeightMatrix() {
 		
 		
 		int L = anyMDFA.getFilterLength(); 

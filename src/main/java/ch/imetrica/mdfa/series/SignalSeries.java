@@ -79,12 +79,13 @@ public class SignalSeries implements MdfaSeries {
 	 * @param name
 	 *   Name of series such that it can be uniquely identified
 	 */
-	public SignalSeries(TargetSeries anytarget, String name) {
+	public SignalSeries(TargetSeries anytarget, String anyformat) {
 		
 		this.coeffs = null;
 		this.target = anytarget;	
-		this.name = name;
+		this.formatter = DateTimeFormat.forPattern(anyformat);
 		signalSeries = new TimeSeries<Double>();
+		this.name = anytarget.getName();
 	}
 		
 	

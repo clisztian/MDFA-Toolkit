@@ -4,6 +4,7 @@ import ch.imetrica.mdfa.customization.Customization;
 import ch.imetrica.mdfa.customization.SmoothingWeight;
 import ch.imetrica.mdfa.datafeeds.CsvFeed;
 import ch.imetrica.mdfa.mdfa.MDFABase;
+import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
 import ch.imetrica.mdfa.regularization.Regularization;
 import ch.imetrica.mdfa.series.MultivariateSeries;
@@ -57,11 +58,8 @@ public class ExampleMDFASetup {
 		TimeSeries<Double> appleSeries = CsvFeed.getChunkOfData(0, 500, "data/AAPL.IB.dat", "dateTime", "close");
 		TimeSeries<Double> qqqSeries   = CsvFeed.getChunkOfData(0, 500, "data/QQQ.IB.dat", "dateTime", "close");
 		
-		SmoothingWeight myWeight = new SmoothingWeight(anyMDFA);
-		TargetFilter myTarget = new TargetFilter(anyMDFA);	
-		Regularization anyReg = new Regularization(anyMDFA);
-		Customization anyCustom = new Customization(anyMDFA, myWeight, myTarget);	
-		MDFASolver mySolver = new MDFASolver(anyCustom, anyReg);
+		MDFAFactory anyMDFAFactory = new MDFAFactory(anyMDFA);
+		MDFASolver mySolver = new MDFASolver(anyMDFAFactory);
 		
 		MultivariateSeries multiSeries = new MultivariateSeries(anyMDFA, mySolver);
 		

@@ -8,6 +8,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import ch.imetrica.mdfa.matrix.MdfaMatrix;
 import ch.imetrica.mdfa.mdfa.MDFABase;
+import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
 import ch.imetrica.mdfa.series.MdfaSeries.SeriesType;
@@ -416,6 +417,11 @@ public class MultivariateSeries {
  			}
 			
 		}
+	}
+	
+	public MDFAFactory getMDFAFactory() {
+		
+		return this.anySolver.getMDFAFactory();
 	}
 	
 }
