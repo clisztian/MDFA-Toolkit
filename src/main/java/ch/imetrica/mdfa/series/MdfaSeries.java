@@ -155,5 +155,14 @@ public interface MdfaSeries extends Serializable {
 	 */
 	void chopFirstObservations(int n);
 
+	/**
+	 * In the case that the MDFASeries is 
+	 * a Signal series AND is a prefiltered series, 
+	 * returns true, otherwise returns false
+	 * 
+	 * @return
+	 */
+	boolean isPrefiltered();
+
 	
 }

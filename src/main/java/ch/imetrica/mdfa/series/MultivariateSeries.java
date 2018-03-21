@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.jfree.ui.RefineryUtilities;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import ch.imetrica.mdfa.matrix.MdfaMatrix;
@@ -51,17 +52,15 @@ public class MultivariateSeries {
 	TimeSeries<Double> aggregateSignal;
 	ArrayList<MdfaSeries> anySeries;
 	MDFASolver anySolver;
-	MDFABase anyMDFA;
 	DateTimeFormatter formatter;
 	
-	private int nSignals = 0;
+	private int numberOfSignals = 0;
 	private int targetIndex = 0;
 	
-	public MultivariateSeries(MDFABase anyMDFA, MDFASolver anySolver) {
+	public MultivariateSeries(MDFASolver anySolver) {
 		
 		this.aggregateSignal = new TimeSeries<Double>();
 		this.anySeries = new ArrayList<MdfaSeries>();
-		this.anyMDFA = anyMDFA;
 		this.anySolver = anySolver;
 		
 	}
@@ -98,7 +97,7 @@ public class MultivariateSeries {
 			
 			anySeries.add(series);
 			if(series.getSeriesType() == SeriesType.SIGNAL) {
-				nSignals++;
+				numberOfSignals++;
 			}
 		}
 		return success;
@@ -220,19 +219,25 @@ public class MultivariateSeries {
 	 * 
 	 * Compute the MDFA filter coefficients given the most 
 	 * recent N time series observations and the given 
-	 * MDFA Base and solver
+	 * MDFA Base and solver. 
+	 * 
+	 * This will first set how many series/signals are in the estimation
+	 * for the filter coefficients in the MDFABase object and then 
+	 * extract the latest N points from each series to send to the spectral 
+	 * base for recomputing the spectral information
 	 * 
 	 * @throws Exception
 	 */
 	public void computeFilterCoefficients() throws Exception {
 		
-		SpectralBase base = new SpectralBase(anyMDFA);
+		anySolver.getMDFAFactory().setNumberOfSeries(numberOfSignals);
+		SpectralBase base = new SpectralBase(anySolver.getMDFAFactory().getSeriesLength());
 		base.addMultivariateSeries(this);
 		anySolver.updateSpectralBase(base);
 		MdfaMatrix bcoeffs = anySolver.solver();
 		
 		int signal = 0;
-		int L = anyMDFA.getFilterLength();
+		int L = anySolver.getMDFAFactory().getFilterLength();
 		this.aggregateSignal = new TimeSeries<Double>();
 		for(int i = 0; i < anySeries.size(); i++) {
 			
@@ -264,7 +269,7 @@ public class MultivariateSeries {
 	 * @return
 	 */
 	public int getNumberSignal() {
-		return nSignals;
+		return numberOfSignals;
 	}
 	
 	/**
@@ -349,13 +354,13 @@ public class MultivariateSeries {
 	
 	
 	
-	public void plotAggregateSignal() throws Exception {
+	public void plotAggregateSignal(String myTitle) throws Exception {
 		
 		if(this.aggregateSignal.size() > 10) {	
 		   
 			
 			
-	    	final String title = "EURUSD frac diff";
+	    	final String title = myTitle;
 	        final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, this);
 	        eurusd.pack();
 	        RefineryUtilities.positionFrameRandomly(eurusd);
@@ -367,6 +372,14 @@ public class MultivariateSeries {
 		
 	}
 	
+	/**
+	 * 
+	 * Chops off the first n values of all the time series in this
+	 * multivariate series. Typically used to free up memeory 
+	 * 
+	 * @param n
+	 *   Number of observations to eliminate from all time series
+	 */
 	public void chopFirstObservations(int n) {
 		
 		for(int i = 0; i < anySeries.size(); i++) {
@@ -381,12 +394,26 @@ public class MultivariateSeries {
 		}
 	}
 		
+	/**
+	 * Gets this joda DateTimeFormatter
+	 * @return
+	 *   DateTimeFormatter
+	 */
 	public DateTimeFormatter getFormatter() {
 		return formatter;
 	}
 	
-	public void setDateFormat(DateTimeFormatter formatter) {
-		this.formatter = formatter;
+	/**
+	 * Set the Joda Dateformat that will be used with this 
+	 * signal time series. Should be consistent with the other 
+	 * time series
+	 * 
+	 * @param format
+	 *    The format of the datetime stamp (usually something like 
+	 *    "yyyy-MM-dd HH:mm:ss")
+	 */
+	public void setDateFormat(String format) {
+		this.formatter = DateTimeFormat.forPattern(format);
 	}
 	
 	private void addSignalToAggregate(SignalSeries signal) throws Exception {
@@ -419,9 +446,21 @@ public class MultivariateSeries {
 		}
 	}
 	
+	/**
+	 * Gets access to this MDFAFactor for updating/changing dimensions 
+	 * or parameters of the MDFA filtering process
+	 * 
+	 * @return
+	 *   This MDFAFactor accessed from the MDFASolver    
+	 *
+	 */
 	public MDFAFactory getMDFAFactory() {
 		
 		return this.anySolver.getMDFAFactory();
 	}
+	
+    
+	
+	
 	
 }

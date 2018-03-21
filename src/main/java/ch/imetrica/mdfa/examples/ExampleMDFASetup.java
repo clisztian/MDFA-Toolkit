@@ -61,7 +61,7 @@ public class ExampleMDFASetup {
 		MDFAFactory anyMDFAFactory = new MDFAFactory(anyMDFA);
 		MDFASolver mySolver = new MDFASolver(anyMDFAFactory);
 		
-		MultivariateSeries multiSeries = new MultivariateSeries(anyMDFA, mySolver);
+		MultivariateSeries multiSeries = new MultivariateSeries(mySolver);
 		
 		SignalSeries aapl_signal = new SignalSeries(new TargetSeries(appleSeries, 0.4, true), "AAPL");	
 		SignalSeries qqq_signal = new SignalSeries(new TargetSeries(qqqSeries, 0.4, true), "QQQ");	

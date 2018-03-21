@@ -1,7 +1,5 @@
 package ch.imetrica.mdfa.examples;
 
-import org.joda.time.format.DateTimeFormat;
-
 import ch.imetrica.mdfa.datafeeds.CsvFeed;
 import ch.imetrica.mdfa.series.TargetSeries;
 import ch.imetrica.mdfa.series.TimeSeriesEntry;

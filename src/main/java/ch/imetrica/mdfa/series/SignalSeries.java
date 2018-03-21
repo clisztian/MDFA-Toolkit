@@ -19,10 +19,15 @@ import ch.imetrica.mdfa.unbiased.WhiteNoiseFilter;
  * An MdfaSeries that contains both a target series for 
  * filtering and it's resulting signal
  * 
- * The signal series holds two time series types which are linked
+ * The signal series holds up to three time series types which are linked
  * by the datetime stamp. The target series holds the raw and 
  * transformed series and the signal series in a separate but linked 
- * TimeSeries<Double>. The signal is computed using the coeffs 
+ * TimeSeries<Double>. A third (optional) series is a prefiltered series
+ * which can be used to obtain (better) signal extraction properties from an 
+ * already filtered series using a (typically unbiased) approximation to 
+ * the symmetric filter. 
+ * 
+ * The signal is computed using the coeffs 
  * double array, which are real-time signal coefficients. The signal 
  * will only begin registering signal values once the coeffs array 
  * has been defined. 
@@ -43,13 +48,10 @@ public class SignalSeries implements MdfaSeries {
 	private TimeSeries<Double> signalSeries;
 	private TargetSeries target;
 	private double[] coeffs;
+	private double[] preFilterCoeffs = null;
 	private String name;
-	
-	
-	public SignalSeries(double[] coeffs) {			
-		this.coeffs = coeffs;	
-		signalSeries = new TimeSeries<Double>();
-	}
+
+
 
 	/**
      * Constructs a SignalSeries from a reference target time series
@@ -64,7 +66,8 @@ public class SignalSeries implements MdfaSeries {
 		
 		this.coeffs = null;
 		this.target = anytarget;
-		signalSeries = new TimeSeries<Double>();
+		this.signalSeries = new TimeSeries<Double>();
+
 	}
 	
 	
@@ -84,7 +87,7 @@ public class SignalSeries implements MdfaSeries {
 		this.coeffs = null;
 		this.target = anytarget;	
 		this.formatter = DateTimeFormat.forPattern(anyformat);
-		signalSeries = new TimeSeries<Double>();
+		this.signalSeries = new TimeSeries<Double>();
 		this.name = anytarget.getName();
 	}
 		
@@ -102,9 +105,9 @@ public class SignalSeries implements MdfaSeries {
      * 
      */
 	
-	public SignalSeries(double[] coeffs, TargetSeries anytarget) throws Exception {		
+	public SignalSeries(TargetSeries anytarget, String anyformat, double[] prefiltercoeffs) throws Exception {		
 		
-		this.coeffs = coeffs;		
+		this.preFilterCoeffs = prefiltercoeffs;		
 		this.target = anytarget;
 		this.computeSignalFromTarget();
 	}
@@ -136,12 +139,20 @@ public class SignalSeries implements MdfaSeries {
 		this.computeSignalFromTarget();
 	}
 	
-	
+	public SignalSeries(double[] coeffs, TargetSeries anytarget) throws Exception {		
+		
+		this.coeffs = coeffs;		
+		this.target = anytarget;
+		this.computeSignalFromTarget();
+	}
 	
 	/**
      * Stores the latest filter coefficients
      * coefficients. Recomputes a new signal series based on (new)
      * coefficients. 
+     * 
+     * If a preFilter exists for this signal, the coefficients will be 
+     * convolved with the prefilter to produce the aggregate filter
      * 
      * @param b 
      *     The filter coefficients to store
@@ -151,7 +162,14 @@ public class SignalSeries implements MdfaSeries {
      */
 	public void setMDFAFilterCoefficients(double[] b) throws Exception {
 		
-		this.coeffs = b;
+		if(isPrefiltered()) {
+			
+			this.coeffs = convolve(preFilterCoeffs, b);
+		}
+		else { 
+			this.coeffs = b;
+		}
+		
 		if(target != null) {
 			this.computeSignalFromTarget();
 		}
@@ -281,6 +299,32 @@ public class SignalSeries implements MdfaSeries {
 			return 0;
 		}
 		return signalSeries.get(i).getValue();
+	}
+	
+
+	/**
+	 * Returns the prefiltered series at index i
+	 * if prefiltering is turned on. Else it 
+	 * will return 0
+	 * 
+	 * @param i
+	 * @return
+	 *    Prefiltered series at index i, if exists.
+	 *    Otherwise 0
+	 */
+	public double getPrefilteredValue(int i) {
+		
+		if(!isPrefiltered()) {
+			return 0;
+		}
+		double val = 0;
+		
+		int filter_length = Math.min(i+1, preFilterCoeffs.length);
+
+		for (int l = 0; l < filter_length; l++) {
+			val = val + preFilterCoeffs[l]*target.getTargetValue(i - l);
+		}
+		return val;
 	}
 	
 	/**
@@ -537,6 +581,56 @@ public class SignalSeries implements MdfaSeries {
 			signalSeries.remove(0);
 		}		
 	}
+
+	/**
+	 * 
+	 * Sets the prefilter coefficients for 
+	 * a prefiltering stage 
+	 * 
+	 * @param preFilter
+	 *   The prefilter as an array of doubles. The
+	 *   length must be greater than one
+	 */
+	public SignalSeries setPrefilter(double[] preFilter) {
+		this.preFilterCoeffs = preFilter;
+		return this;
+	}
+	
+	
+	/**	  
+	 * In the case we have a prefilter on the target
+	 */
+	@Override
+	public boolean isPrefiltered() {
+		return (preFilterCoeffs != null);
+	}
+	
+	
+	private static double[] convolve(double[] x, double[] h) {
+
+        final int xLen = x.length;
+        final int hLen = h.length;
+
+        if (xLen == 0 || hLen == 0) {
+            return null;
+        }
+
+        // initialize the output array
+        final int totalLength = xLen + hLen - 1;
+        final double[] y = new double[totalLength];
+
+        for (int n = 0; n < totalLength; n++) {
+
+        	double yn = 0;
+            int k = Math.max(0, n + 1 - xLen);
+            int j = n - k;
+            while (k < hLen && j >= 0) {
+                yn += x[j--] * h[k++];
+            }
+            y[n] = yn;
+        }
+        return y;
+    }
 	
 
 }

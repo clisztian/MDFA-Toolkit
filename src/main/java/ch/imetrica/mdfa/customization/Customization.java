@@ -187,7 +187,7 @@ public class Customization {
 			throw new Exception("Number of time series does not equal number of DFTs. Must have " + 
 		                         anyMDFA.getNSeries() + " instead of " + anySpectralDensity.size()); 
 		}
-		
+	
 		double lambda = anyMDFA.getLambda();
 		double lag    = anyMDFA.getLag();
 		int nseries   = anyMDFA.getNSeries();	
@@ -209,13 +209,24 @@ public class Customization {
 			}		
 		}
 		
+		/* The target spectral information is extracted here */
+//		Complex[] args = new Complex[K1];
+//		for(int k = 0; k < K1; k++) {
+//			
+//			double val = anyTarget.getValue(k)*mdfaWeight[targetIndx][k].abs();
+//			rh_gamma.mdfaMatrixSet(k, 0, val); 
+//			args[k] = (new Complex(0, -mdfaWeight[targetIndx][k].getArgument())).exp();
+//		}
+		
 		Complex[] args = new Complex[K1];
 		for(int k = 0; k < K1; k++) {
 			
-			double val = anyTarget.getValue(k)*mdfaWeight[targetIndx][k].abs();
+			double val = anyTarget.getValue(k)*anySpectralDensity.getTargetSpectralDensity(k).abs();
 			rh_gamma.mdfaMatrixSet(k, 0, val); 
-			args[k] = (new Complex(0, -mdfaWeight[targetIndx][k].getArgument())).exp();
+			args[k] = (new Complex(0, -anySpectralDensity.getTargetSpectralDensity(k).getArgument())).exp();
 		}
+		
+		
 		
 		for(int i = 0; i < nseries; i++) {
 			for(int k = 0; k < K1; k++) {
@@ -241,6 +252,9 @@ public class Customization {
 		}
 	}
 	
+	public SpectralBase getSpectralBase() {
+		return anySpectralDensity;
+	}
 	
 	public MdfaMatrix getREX() {
 		return this.REX;

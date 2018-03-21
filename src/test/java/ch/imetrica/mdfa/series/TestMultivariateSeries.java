@@ -20,7 +20,7 @@ import ch.imetrica.mdfa.series.TargetSeries;
 import ch.imetrica.mdfa.series.TimeSeries;
 import ch.imetrica.mdfa.targetfilter.TargetFilter;
 
-public class MultivariateSeriesTest {
+public class TestMultivariateSeries {
 
 	@Test
 	public void testAddingSignalSeries() throws Exception {
@@ -62,9 +62,9 @@ public class MultivariateSeriesTest {
 		TimeSeries<Double> qqqSeries = CsvFeed.getChunkOfData(0, 200, "data/QQQ.IB.dat", "dateTime", "close");	
 		TimeSeries<Double> spySeries = CsvFeed.getChunkOfData(0, 200, "data/SPY.IB.dat", "dateTime", "close");	
 		
-		SignalSeries apple = new SignalSeries(new TargetSeries(appleSeries, .4, true), "AAPL");
-		SignalSeries qqq = new SignalSeries(new TargetSeries(qqqSeries, .4, true), "QQQ");
-		SignalSeries spy = new SignalSeries(new TargetSeries(spySeries, .4, true), "SPY");
+		SignalSeries apple = new SignalSeries(new TargetSeries(appleSeries, .4, true), "yyyy-MM-dd");
+		SignalSeries qqq = new SignalSeries(new TargetSeries(qqqSeries, .4, true), "yyyy-MM-dd");
+		SignalSeries spy = new SignalSeries(new TargetSeries(spySeries, .4, true), "yyyy-MM-dd");
 		PriceSeries applePrice = new PriceSeries(appleSeries, false);
 		
 		
@@ -73,7 +73,7 @@ public class MultivariateSeriesTest {
 		MDFASolver mySolver = new MDFASolver(anyMDFAFactory);
 		
 		
-		MultivariateSeries multi = new MultivariateSeries(anyMDFA, mySolver);
+		MultivariateSeries multi = new MultivariateSeries(mySolver);
 		
 		
 		multi.addSeries(applePrice);
@@ -84,7 +84,7 @@ public class MultivariateSeriesTest {
 		assertEquals(3, multi.getNumberSignal());
 
 		TimeSeries<Double> eemSeries = CsvFeed.getChunkOfData(0, 205, "data/EEM.IB.dat", "dateTime", "close");	
-		SignalSeries eem = new SignalSeries(new TargetSeries(eemSeries, .4, true), "GOOG");
+		SignalSeries eem = new SignalSeries(new TargetSeries(eemSeries, .4, true), "yyyy-MM-dd");
 		
 		
 		assertFalse(multi.addSeries(eem));
@@ -134,9 +134,9 @@ public class MultivariateSeriesTest {
 		TimeSeries<Double> qqqSeries = CsvFeed.getChunkOfData(0, 200, "data/QQQ.IB.dat", "dateTime", "close");	
 		TimeSeries<Double> spySeries = CsvFeed.getChunkOfData(0, 200, "data/SPY.IB.dat", "dateTime", "close");	
 		
-		SignalSeries apple = new SignalSeries(new TargetSeries(appleSeries, .4, true), "AAPL");
-		SignalSeries qqq = new SignalSeries(new TargetSeries(qqqSeries, .4, true), "QQQ");
-		SignalSeries spy = new SignalSeries(new TargetSeries(spySeries, .4, true), "SPY");
+		SignalSeries apple = new SignalSeries(new TargetSeries(appleSeries, .4, true), "yyyy-MM-dd");
+		SignalSeries qqq = new SignalSeries(new TargetSeries(qqqSeries, .4, true), "yyyy-MM-dd");
+		SignalSeries spy = new SignalSeries(new TargetSeries(spySeries, .4, true), "yyyy-MM-dd");
 		PriceSeries applePrice = new PriceSeries(appleSeries, false);
 		
 		
@@ -145,7 +145,7 @@ public class MultivariateSeriesTest {
 		MDFASolver mySolver = new MDFASolver(anyMDFAFactory);
 		
 		
-		MultivariateSeries multi = new MultivariateSeries(anyMDFA, mySolver);
+		MultivariateSeries multi = new MultivariateSeries(mySolver);
 		
 		
 		multi.addSeries(applePrice);

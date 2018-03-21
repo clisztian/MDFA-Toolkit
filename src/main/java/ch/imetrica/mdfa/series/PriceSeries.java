@@ -122,4 +122,10 @@ public class PriceSeries implements MdfaSeries {
 			timeSeries.remove(0);
 		}	
 	}
+
+
+	@Override
+	public boolean isPrefiltered() {
+		return false;
+	}
 }

@@ -71,16 +71,14 @@ public class SmoothingWeight {
 			}
 		}		
 	}
-	
-	public Complex getComplex(int j, int i) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
 
 	public double getWeight(int k) {
 
 		return smoothingWeight[k];
 	} 
 	
-	
+	public int size() {
+		return this.smoothingWeight.length;
+	}
 }

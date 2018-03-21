@@ -46,6 +46,27 @@ public class MDFAFactory {
 		anyCustom = new Customization(anyMDFA, anyWeight, anyTarget);
 	}
 	
+	/**
+	 * 
+	 * Adjusts the matrix dimensions of the customization and regularization
+	 * matrices to fit the number of series. Should obviously be one or greater
+	 * 
+	 * 
+	 * @param nseries 
+	 *    Total number of series for which to estimate coefficients
+	 * @throws Exception 
+	 */
+	public void setNumberOfSeries(int nseries) throws Exception {
+		
+		if(nseries < 1) {
+			throw new Exception("Number of signal series for MDFA estimation should be at least one");
+		}
+		
+		anyMDFA.setNumberOfSeries(nseries);
+		anyCustom = new Customization(anyMDFA, anyWeight, anyTarget);
+		anyReg = new Regularization(anyMDFA);
+	}
+	
 	
 	/**
 	 * 
@@ -199,6 +220,17 @@ public class MDFAFactory {
 	}
 
 
+	/**
+	 * 
+	 * The cross-correlation strength regularization factor 
+	 * that controls how "similar" the multivariate series
+	 * should be in estimating the coefficients. A value of zero
+	 * forces the coefficients across the series to be completely 
+	 * independent. The largest value forces the coefficients 
+	 * to be equal across all series.
+	 * 
+	 * @param crossCorr
+	 */
 	public void setCrossRegularization(double crossCorr) {
 		
 		anyMDFA.setCrossCorr(crossCorr);
@@ -377,5 +409,6 @@ public class MDFAFactory {
 	public void setCustomization(Customization anyCustom2) {
 		this.anyCustom = anyCustom2;
 	}
+
 	
 }

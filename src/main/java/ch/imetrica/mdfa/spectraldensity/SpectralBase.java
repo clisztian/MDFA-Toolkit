@@ -10,6 +10,7 @@ import org.jfree.ui.RefineryUtilities;
 import com.csvreader.CsvReader;
 
 import ch.imetrica.mdfa.mdfa.MDFABase;
+import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
 import ch.imetrica.mdfa.series.MdfaSeries;
 import ch.imetrica.mdfa.series.MultivariateSeries;
@@ -46,6 +47,7 @@ public class SpectralBase {
 	private ArrayList<Complex[]> dfts;
 	private int in_sample_size;
 	private int myTarget;
+	private Complex[] targetDFTs;
 	
 	/**
      * Sets the in_sample_size for the SpectralDensity estimation
@@ -56,14 +58,31 @@ public class SpectralBase {
      *            An Mdfa object holding number of observations
      */
 	
-	 public SpectralBase(MDFABase anyMdfa) {
+	 public SpectralBase(int nObservations) {
 		 	 
-		 this.in_sample_size = anyMdfa.getSeriesLength();
+		 this.in_sample_size = nObservations;
 		 this.myTarget = 0;
 		 this.dfts = new ArrayList<Complex[]>();
 	 }
 	 
-	
+	 
+	 /** 
+	  * 
+	  * Uses an MDFAFactor object to extract 
+	  * MDFA computational parameters. The default 
+	  * myTarget index is set to 0
+	  * 
+	  * @param anyMDFAFactory
+	  */
+	 public SpectralBase(MDFAFactory anyMDFAFactory) {
+		 
+		 this.in_sample_size = anyMDFAFactory.getSeriesLength();
+		 this.myTarget = 0;
+		 this.dfts = new ArrayList<Complex[]>();
+		 
+	 }
+	 
+	 
 	 /**
 	  * Computes the basic Fourier coefficients
 	  * for a given target series that has been 
@@ -83,39 +102,65 @@ public class SpectralBase {
 		 if(anySeries.size() < in_sample_size) {
 			 throw new Exception("Size of anySeries must be at least " + in_sample_size);
 		 }
-
-		 int K = (int)in_sample_size/2;
-		 int K1 = K+1;
-		 final double M_PI = Math.PI;
-		 double mean = 0;
-		 
-		 Complex[] prdx = new Complex[K1];
-		 
-		 int start = anySeries.size() - in_sample_size;
-		 
-		 for(int i = start; i < anySeries.size(); i++) {
-			 mean += anySeries.getTargetValue(i);
+	
+		 if(dfts.size() == myTarget) {			
+			 targetDFTs = computeDFT(anySeries, true);
 		 }
-		 mean = mean/in_sample_size;
-		 		 
-		 prdx[0] = new Complex(mean,0);
-		 Complex ab = new Complex(0,0);
 		 
-		 for(int j = 1; j < K1; j++) {
+		 /* Set the target DFTs to this DFT */
+		 if(anySeries.isPrefiltered()) {			 
+	
+			 dfts.add(computeDFT(anySeries, false));
+		 }
+		 else {
+			 
+			 dfts.add(computeDFT(anySeries, true));
+		 }
+	}
+	 
+	 
+	private Complex[] computeDFT(MdfaSeries anySeries, boolean target) {
+		
+		int K = (int)in_sample_size/2;
+		int K1 = K+1;
+		final double M_PI = Math.PI;
+		double mean = 0;
+		double val;
+		
+		Complex[] prdx = new Complex[K1];
+		int start = anySeries.size() - in_sample_size;
+		 
+		for(int i = start; i < anySeries.size(); i++) {
+			
+			if(target) 
+				mean += anySeries.getTargetValue(i);
+			else if(anySeries.getSeriesType() == SeriesType.SIGNAL)
+				mean += ((SignalSeries)anySeries).getPrefilteredValue(i);
+			
+		}
+		mean = mean/in_sample_size;
+		 		 
+		prdx[0] = new Complex(mean,0);
+		Complex ab = new Complex(0,0);
+		 
+		for(int j = 1; j < K1; j++) {
 			 
 			 ab = new Complex(0,0);
 			 for(int i = start; i < anySeries.size(); i++) {
 				 
-				 double val = anySeries.getTargetValue(i) - mean;				 
+				 if(target) 
+					 val = anySeries.getTargetValue(i) - mean;				 
+				 else
+					 val = ((SignalSeries)anySeries).getPrefilteredValue(i) - mean;
+				 
 				 Complex z = (new Complex(0, M_PI*(i - start + 1.0)*j/K)).exp();				 
 				 ab = ab.add(z.multiply(val)); 
 			 }
 			 prdx[j] = ab.divide(Math.sqrt(M_PI*in_sample_size));			 
-		 }
-		
-		 dfts.add(prdx);
-		 
+		}
+		return prdx;		
 	}
+	 
 	 
 	/**
 	 * 
@@ -135,7 +180,7 @@ public class SpectralBase {
 
 		for(int i = 0; i < M; i++) {
 			if(signals.getSeries(i).getSeriesType() == SeriesType.SIGNAL) {
-				addSeries(((SignalSeries)signals.getSeries(i)).getTargetSeries());
+				addSeries(((SignalSeries)signals.getSeries(i)));
 			}
 		}
 	}
@@ -168,7 +213,11 @@ public class SpectralBase {
 	*      index is 0.     
 	*/
 	public void setTargetIndex(int target) {
-		this.myTarget = target;
+		
+		if(target < dfts.size()) {
+			this.myTarget = target;
+			targetDFTs = dfts.get(target);
+		}	
 	}
 
 	/**
@@ -224,62 +273,16 @@ public class SpectralBase {
 	        eurusd.setVisible(true);
 			
 	}
+
+
+	public Complex getTargetSpectralDensity(int k) {
+		return targetDFTs[k];
+	}
 	
 	
 	
 	 
-	 public static void main(String[] args) throws Exception {
-		 
-		 
-		    String dataFile = "data/EUR.USD.csv";
-			TimeSeries<Double> rawSeries = new TimeSeries<Double>();
-			CsvReader marketDataFeed;
-			
-			int nObs = 0;
-			int MAX_OBS = 1000;
-			
-			try{
-				
-				 /* Read data market feed from CSV filer and it's headers*/	
-				 marketDataFeed = new CsvReader(dataFile);
-				 marketDataFeed.readHeaders();
 
-				 while (marketDataFeed.readRecord()) {
-					 
-					double price = (new Double(marketDataFeed.get("close"))).doubleValue();
-					String date_stamp = marketDataFeed.get("dateTime");
-					
-					rawSeries.add(date_stamp, price);
-					nObs++;
-					
-					if(nObs == MAX_OBS) break;
-				 }
-				 
-				 TargetSeries tseries = new TargetSeries(rawSeries, 0.7, true);
-		 
-				 MDFABase anyMdfa = new MDFABase(300, 1, 20, 0, .52);
-				 SpectralBase spec = new SpectralBase(anyMdfa);
-				 
-				 spec.addSeries(tseries);
-				 
-				 
-				 
-				 Complex[] mydfts = spec.getSpectralBase().get(0);
-				 double[] abs = new double[mydfts.length];
-				 for(int i = 0; i < abs.length; i++) {
-					 
-					 abs[i] = mydfts[i].abs();
-					 System.out.println(abs[i]);
-				 }
-				 
-				 SpectralBase.plotPeriodogram(abs);
-				 
-				 
-	      }
-		  catch (FileNotFoundException e) { e.printStackTrace(); throw new RuntimeException(e); } 
-		  catch (IOException e) { e.printStackTrace(); throw new RuntimeException(e);}
-		
-	 }
 
 
 

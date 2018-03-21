@@ -325,6 +325,12 @@ public class TargetSeries implements MdfaSeries {
 	}
 
 
+	@Override
+	public boolean isPrefiltered() {
+		return false;
+	}
+
+
 
 	
 

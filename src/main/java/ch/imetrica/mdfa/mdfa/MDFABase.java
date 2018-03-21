@@ -111,6 +111,10 @@ public class MDFABase {
 		return this.nseries;
 	}
 
+	public void setNumberOfSeries(int nseries) {
+		this.nseries = nseries;
+	}
+	
 	public double getLag() {
 		return this.lag;
 	}

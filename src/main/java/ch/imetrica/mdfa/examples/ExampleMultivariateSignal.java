@@ -36,7 +36,7 @@ public class ExampleMultivariateSignal {
 		double decayStrength	= 0.01;
 		double decayStart		= 0.01;
 		double crossCorr		= 0.1;
-		double shift_const		= 1.0;
+		double shift_const		= -1.0;
 		
 		MDFABase anyMDFA = new MDFABase(nobs, 
 		        nseries, 
@@ -72,8 +72,8 @@ public class ExampleMultivariateSignal {
 
 
 		
-		MultivariateSeries multiSeries = new MultivariateSeries(anyMDFA, mySolver);
-		multiSeries.setDateFormat(DateTimeFormat.forPattern("yyyy-MM-dd"));
+		MultivariateSeries multiSeries = new MultivariateSeries(mySolver);
+		multiSeries.setDateFormat("yyyy-MM-dd");
 		
 		
 		
@@ -90,7 +90,7 @@ public class ExampleMultivariateSignal {
 		
 		multiSeries.computeFilterCoefficients();
 		
-		for(int i = 0; i < 500; i++) {
+		for(int i = 0; i < 200; i++) {
 			
 			TimeSeriesEntry<double[]> observation = marketFeed.getNextMultivariateObservation();
 			multiSeries.addValue(observation.getValue(), observation.getDateTime());
@@ -98,8 +98,13 @@ public class ExampleMultivariateSignal {
 		}
 		
 		multiSeries.chopFirstObservations(100);
-		multiSeries.plotAggregateSignal();
+		multiSeries.plotAggregateSignal("After data chop");
 		
+		multiSeries.getMDFAFactory().setI2(1);
+		multiSeries.getMDFAFactory().setShift_constraint(-1.0);
+				
+		multiSeries.computeFilterCoefficients();
+		multiSeries.plotAggregateSignal("With i2 and phase shift");
 	}
 	
 	

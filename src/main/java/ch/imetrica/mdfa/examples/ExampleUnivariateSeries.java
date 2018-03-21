@@ -68,8 +68,8 @@ public class ExampleUnivariateSeries {
 		SignalSeries aaplSignal = new SignalSeries(new TargetSeries(1.0, true, "AAPL"), "AAPL");	
 		aaplSignal.setDateFormat("yyyy-MM-dd");
 
-		MultivariateSeries multiSeries = new MultivariateSeries(anyMDFA, mySolver);
-		multiSeries.setDateFormat(DateTimeFormat.forPattern("yyyy-MM-dd"));
+		MultivariateSeries multiSeries = new MultivariateSeries(mySolver);
+		multiSeries.setDateFormat("yyyy-MM-dd");
 		
 		
 		
@@ -93,7 +93,7 @@ public class ExampleUnivariateSeries {
         
         multiSeries.printSignal();
         multiSeries.chopFirstObservations(50);
-        multiSeries.plotAggregateSignal();
+        multiSeries.plotAggregateSignal("AAPL");
 
 		
 
