@@ -72,11 +72,13 @@ public class TargetFilter {
 	public void adjustTargetFilter(MDFABase anyMDFA) {
 		
 		int N = anyMDFA.getSeriesLength();
-		double cutoff = anyMDFA.getLowPassCutoff();
+		this.cutoff = anyMDFA.getLowPassCutoff();
+		this.omega0 = anyMDFA.getBandPassCutoff();
+		int K = (int)Math.ceil(N/2.0);		
+
 		
-		int K = (int)Math.ceil(N/2.0);				
-	    int omega_Gamma = (int)(cutoff*K/Math.PI);
-	    int omega_Gamma0 = (int)(omega0*K/Math.PI);
+	    int omega_Gamma = (int)(this.cutoff*K/Math.PI);
+	    int omega_Gamma0 = (int)(this.omega0*K/Math.PI);
 	    
 		for(int i = 0; i <= K; i++) {
 			

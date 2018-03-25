@@ -25,7 +25,7 @@ public class MDFABase {
 	 *  Number of series for estimating filter 
 	 *  Target + explanatory series
 	 */
-	private int nseries; /* number of series used for signal estimation */
+	private int nseries = 1; /* number of series used for signal estimation */
 	
 	/**
 	 *  lag Forecasting/smoothing lag

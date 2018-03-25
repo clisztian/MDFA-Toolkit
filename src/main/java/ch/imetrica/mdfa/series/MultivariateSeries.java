@@ -432,7 +432,6 @@ public class MultivariateSeries {
 			for(int i = 0; i < signal.size(); i++) {
 				
 		      String current = signal.getSignalDate(i);	
-				
 			  if(current.equals(aggregateSignal.get(i).getDateTime())) {
 				  
 				  double val = aggregateSignal.get(i).getValue() + signal.getSignalValue(i);
@@ -441,8 +440,7 @@ public class MultivariateSeries {
 			  else {
 				  throw new Exception("Dates do not match of the signals: " + current + " is not " + aggregateSignal.get(i).getDateTime());
 			  }
- 			}
-			
+ 			}			
 		}
 	}
 	

@@ -2,6 +2,9 @@ package ch.imetrica.mdfa.series;
 
 import java.util.ArrayList;
 
+import javax.swing.plaf.multi.MultiListUI;
+
+import org.jfree.ui.RefineryUtilities;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -9,6 +12,7 @@ import ch.imetrica.mdfa.matrix.MdfaMatrix;
 import ch.imetrica.mdfa.mdfa.MDFABase;
 import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
+import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
 import ch.imetrica.mdfa.series.MdfaSeries.SeriesType;
 import ch.imetrica.mdfa.spectraldensity.SpectralBase;
 
@@ -66,6 +70,7 @@ public class MultivariateSignalSeries implements MdfaSeries {
 		this.bcoeffs = new ArrayList<double[]>();
 		this.preFilterCoeffs = new ArrayList<double[]>();
 		
+		
 		anySolvers = new MDFASolver[anyMDFAs.length];
 		for(int i = 0; i < anyMDFAs.length; i++) {
 			anySolvers[i] = new MDFASolver(new MDFAFactory(anyMDFAs[i]));
@@ -105,7 +110,7 @@ public class MultivariateSignalSeries implements MdfaSeries {
 	 * 
 	 * @throws Exception
 	 */
-	public void computeFilterCoefficients() throws Exception {
+	public MultivariateSignalSeries computeFilterCoefficients() throws Exception {
 		
 		int M = anySolvers.length;
 		bcoeffs.clear();
@@ -121,6 +126,7 @@ public class MultivariateSignalSeries implements MdfaSeries {
 			double[] sig_coeffs = myCoeffs.getSubsetColumn(0, 0, L);
 			bcoeffs.add(sig_coeffs);			
 		}	
+		return this;
 	}
 	
 	/**
@@ -164,7 +170,7 @@ public class MultivariateSignalSeries implements MdfaSeries {
 	 * @throws Exception if the number of coefficient sets does not equal 
 	 * number of MDFASolvers
 	 */
-	public void computeSignalsFromTarget() throws Exception {
+	public MultivariateSignalSeries computeSignalsFromTarget() throws Exception {
 		
 		if(bcoeffs.size() != anySolvers.length) {
 			throw new Exception("No MDFA coefficients yet computed for this target series");
@@ -190,10 +196,76 @@ public class MultivariateSignalSeries implements MdfaSeries {
 			}
 			multiSignalSeries.add(new TimeSeriesEntry<double[]>(myTarget.getTargetDate(i), sums));
 		}
+		return this;
 	} 
 	
+	/**
+	 * Get the signal value at index i. The 
+	 * signal will be M values for each signal
+	 * defined by the given MDFABase
+	 * @param i ith index in the signal series
+	 * @return
+	 *    A double array of the M signal values
+	 */
+	public double[] getSignalValue(int i) {
+		
+		return multiSignalSeries.get(i).getValue();
+	}
+	
+	/**
+	 * Get the signal date/value pair at index i. The 
+	 * signal will be M values for each signal
+	 * defined by the given MDFABase
+	 * @param i
+	 * @return
+	 *   A TimeSeriesEntry at index i
+	 */
+	public TimeSeriesEntry<double[]> getSignalEntry(int i) {
+		
+		return multiSignalSeries.get(i);
+	}
+	
+	/**
+	 * Get the latest signal value.
+	 * signal will be M values for each signal
+	 * defined by the given MDFABase
+
+	 * @return
+	 *    A double array of the M signal values
+	 */
+	public double[] getLatestSignalValue() {
+		return multiSignalSeries.last().getValue();
+	}
+	
+	/**
+	 * Get the latest signal date/value pair. The 
+	 * signal will be M values for each signal
+	 * defined by the given MDFABase
+	 * 
+	 * @return
+	 *   A TimeSeriesEntry at index i
+	 */
+	public TimeSeriesEntry<double[]> getLatestSignalEntry() {	
+		return multiSignalSeries.last();
+	}
 	
 	
+	/**
+	 * 
+	 * Returns access to the ith MDFAFactory
+	 * to adapt/change MDFA parameters for 
+	 * the ith signal in this multivariate signal
+	 * 
+	 * @param i the ith MDFAFactory of the ith signal 
+	 * @return the MDFAFactor object for the ith signal
+	 */
+	public MDFAFactory getMDFAFactory(int i) {
+		
+		if(i < 0 || i >= anySolvers.length) {
+			return null;
+		}		
+		return anySolvers[i].getMDFAFactory();
+	}
 	
 	
 	/**
@@ -239,6 +311,19 @@ public class MultivariateSignalSeries implements MdfaSeries {
 	}
 
 	
+	public void plotSignals(String myTitle) throws Exception {
+		
+		final String title = myTitle;
+        final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, this);
+        eurusd.pack();
+        RefineryUtilities.positionFrameRandomly(eurusd);
+        eurusd.setVisible(true);
+	}
+	
+	
+	
+	
+	
 	
 	@Override
 	public TimeSeriesEntry<Double> getLatest() {
@@ -271,8 +356,11 @@ public class MultivariateSignalSeries implements MdfaSeries {
 
 	@Override
 	public DateTimeFormatter getDateFormat() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		
+		if(formatter == null) {
+        	throw new Exception("No DateTime format defined yet");
+        }	
+		return formatter;
 	}
 
 	@Override
@@ -299,6 +387,23 @@ public class MultivariateSignalSeries implements MdfaSeries {
 	@Override
 	public boolean isPrefiltered() {
 		return (preFilterCoeffs.size() > 0);
+	}
+
+	/**
+	 * Gets the filter coefficients for the 
+	 * ith signal in the multisignal object
+	 * @param i
+	 * @return
+	 */
+	public double[] getCoefficients(int i) {
+		
+		return bcoeffs.get(i);
+	}
+
+
+	public int getNumberSignals() {
+		
+		return bcoeffs.size();
 	}
 
 

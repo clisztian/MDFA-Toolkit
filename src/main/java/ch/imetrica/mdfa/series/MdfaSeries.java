@@ -44,7 +44,7 @@ public interface MdfaSeries extends Serializable {
 		TARGET,				/** Target series that generates signal, needs coeffs */
 		LABEL,				/** Any labeled series used for machine learning apps */
 		SIGNAL,				/** A filtered series, coeffs are optional */
-		MULTISIGNAL,		/** A MultivariateSignal */
+		MULTISIGNAL,		/** A MultivariateSignal with one target */
 		VOLA,				/** A price volatility series - implied volatility */
 		TECHNICAL;			/** Any other technical indicator */
 	}

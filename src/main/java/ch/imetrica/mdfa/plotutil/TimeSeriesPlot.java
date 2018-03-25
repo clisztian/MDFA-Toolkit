@@ -16,6 +16,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import ch.imetrica.mdfa.series.MultivariateSeries;
+import ch.imetrica.mdfa.series.MultivariateSignalSeries;
 import ch.imetrica.mdfa.series.SignalSeries;
 import ch.imetrica.mdfa.series.TargetSeries;
 import ch.imetrica.mdfa.series.TimeSeriesEntry;
@@ -141,6 +142,57 @@ public class TimeSeriesPlot extends ApplicationFrame {
 
 		}
 
+		public TimeSeriesPlot(String title, MultivariateSignalSeries multivariateSignalSeries) throws Exception {
+			
+			super(title);
+	        final XYDataset dataset = createDataset(title, multivariateSignalSeries, multivariateSignalSeries.getDateFormat());
+	        final JFreeChart chart = createChart(dataset);
+	        final ChartPanel chartPanel = new ChartPanel(chart);
+	        chartPanel.setPreferredSize(new java.awt.Dimension(900, 570));
+	        chartPanel.setMouseZoomable(true, false);
+	        setContentPane(chartPanel);
+			
+			
+		}
+
+		private XYDataset createDataset(String title, MultivariateSignalSeries multivariateSignalSeries,
+				DateTimeFormatter formatter) {
+		
+			TimeSeriesCollection dataset = new TimeSeriesCollection();
+			
+			int M = multivariateSignalSeries.getNumberSignals();
+			
+			final TimeSeries[] signalSeries = new TimeSeries[M];
+			for(int m = 0; m < M; m++) {
+				signalSeries[m] = new TimeSeries("Signal " + m);
+			}
+			
+			final TimeSeries targetSeries = new TimeSeries("Target");
+			
+			int N = multivariateSignalSeries.size();
+			for(int i = 0; i < N; i++) {
+				
+				String datetime = multivariateSignalSeries.getTargetDate(i);
+				double targetVal = multivariateSignalSeries.getTargetValue(i);
+				      
+                DateTime sigDateTime = getSignalDateTime(datetime, formatter);
+                Day current = new Day(sigDateTime.toDate());   
+                targetSeries.add(current, targetVal);
+                
+                double[] sigval = multivariateSignalSeries.getSignalValue(i);
+                
+                for(int m = 0; m < M; m++) {  	
+    				signalSeries[m].add(current, sigval[m]);
+    			}               
+			}
+			dataset.addSeries(targetSeries);
+		
+			for(int m = 0; m < M; m++) {
+				dataset.addSeries(signalSeries[m]);
+			} 	
+	    	return dataset;
+		}
+
 		private XYDataset createDataset(String title, MultivariateSeries series, DateTimeFormatter formatter) throws Exception {
 			
 			TimeSeriesCollection dataset = new TimeSeriesCollection();
@@ -176,6 +228,9 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	    	return dataset;
 	    	
 		}
+		
+		
+		
 
 		private XYDataset createDataset(String title, double[] prdx) {
 			
