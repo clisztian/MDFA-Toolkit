@@ -14,12 +14,12 @@ public class MDFABase {
 	/**
 	 *  N insample length of time series 
 	 */
-	private int N;     
+	private int N = 300;     
 	
 	/**
 	 *  L length of the filter
 	 */
-	private int L;       
+	private int L = 20;       
 	
 	/**
 	 *  Number of series for estimating filter 
@@ -30,31 +30,37 @@ public class MDFABase {
 	/**
 	 *  lag Forecasting/smoothing lag
 	 */
-	private double lag;			
+	private double lag = 0.0;			
 	
 	/**
 	 *  Frequency low-pass cutoff
 	 */
-	private double lowpass_cutoff;
+	private double lowpass_cutoff = Math.PI/10.0;
 
 
-	private double alpha;
+	private double alpha = 0.0;
 
-	private double lambda;
+	private double lambda = 0.0;
 
-	private double smooth;
+	private double smooth = 0.0;
 
-	private double decayStrength;
+	private double decayStrength = 0.0;
 
-	private double decayStart;
+	private double decayStart = 0.0;
 
-	private double crossCorr;     
+	private double crossCorr = 0.0;     
 	
-	private double shift_constraint;
+	private double shift_constraint = 0.0;
 	
-	private int i1;
+	private int i1 = 0;
 	
-	private int i2;
+	private int i2 = 0;
+
+	private double omega0 = 0.0;
+	
+	public MDFABase() {
+		
+	}
 	
 	public MDFABase(int N, int nseries, int L, double lag, double cutoff) {
 		
@@ -103,32 +109,36 @@ public class MDFABase {
 		return this.L;
 	}
 	
-	public void setFilterLength(int L) {
+	public MDFABase setFilterLength(int L) {
 		this.L = L;
+		return this;
 	}
 
 	public int getNSeries() {
 		return this.nseries;
 	}
 
-	public void setNumberOfSeries(int nseries) {
+	public MDFABase setNumberOfSeries(int nseries) {
 		this.nseries = nseries;
+		return this;
 	}
 	
 	public double getLag() {
 		return this.lag;
 	}
 	
-	public void setLag(double lag) {
+	public MDFABase setLag(double lag) {
 		this.lag = lag;
+		return this;
 	}
 
 	public int getSeriesLength() {
 		return this.N;
 	}
 	
-	public void setSeriesLength(int N) {
+	public MDFABase setSeriesLength(int N) {
 		this.N = N;
+		return this;
 	}
 	
 	
@@ -142,8 +152,9 @@ public class MDFABase {
 	}
 
 
-	public void setLambda(double lambda) {
+	public MDFABase setLambda(double lambda) {
 		this.lambda = lambda;
+		return this;
 	}
 
 
@@ -152,8 +163,9 @@ public class MDFABase {
 	}
 
 
-	public void setSmooth(double smooth) {
+	public MDFABase setSmooth(double smooth) {
 		this.smooth = smooth;
+		return this;
 	}
 
 
@@ -162,8 +174,9 @@ public class MDFABase {
 	}
 
 
-	public void setAlpha(double alpha) {
+	public MDFABase setAlpha(double alpha) {
 		this.alpha = alpha;
+		return this;
 	}
 
 
@@ -172,8 +185,9 @@ public class MDFABase {
 	}
 
 
-	public void setDecayStrength(double decayStrength) {
+	public MDFABase setDecayStrength(double decayStrength) {
 		this.decayStrength = decayStrength;
+		return this;
 	}
 
 
@@ -182,8 +196,9 @@ public class MDFABase {
 	}
 
 
-	public void setDecayStart(double decayStart) {
+	public MDFABase setDecayStart(double decayStart) {
 		this.decayStart = decayStart;
+		return this;
 	}
 
 
@@ -192,8 +207,9 @@ public class MDFABase {
 	}
 
 
-	public void setCrossCorr(double crossCorr) {
+	public MDFABase setCrossCorr(double crossCorr) {
 		this.crossCorr = crossCorr;
+		return this;
 	}
 
 
@@ -202,8 +218,9 @@ public class MDFABase {
 	}
 
 
-	public void setI2(int i2) {
+	public MDFABase setI2(int i2) {
 		this.i2 = i2;
+		return this;
 	}
 
 
@@ -212,8 +229,9 @@ public class MDFABase {
 	}
 
 
-	public void setI1(int i1) {
+	public MDFABase setI1(int i1) {
 		this.i1 = i1;
+		return this;
 	}
 
 
@@ -222,12 +240,28 @@ public class MDFABase {
 	}
 
 
-	public void setShift_constraint(double shift_constraint) {
+	public MDFABase setShift_constraint(double shift_constraint) {
 		this.shift_constraint = shift_constraint;
+		return this;
 	}
 	
-	public void setLowpassCutoff(double cutoff) {
-		this.lowpass_cutoff = cutoff;
+	public MDFABase setLowpassCutoff(double cutoff) {
+		
+		if(cutoff > this.omega0) {
+			this.lowpass_cutoff = cutoff;
+		}
+		return this;
+	}
+
+	public double getBandPassCutoff() {
+		return this.omega0 ;
 	}
 	
+	public MDFABase setBandPassCutoff(double omega) {
+		
+		if(omega < this.lowpass_cutoff) {
+			this.omega0 = omega;
+		}
+		return this;	
+	}
 }

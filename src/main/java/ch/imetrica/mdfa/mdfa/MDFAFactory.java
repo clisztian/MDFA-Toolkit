@@ -13,10 +13,10 @@ import ch.imetrica.mdfa.targetfilter.TargetFilter;
  *  
  * Provides an interface to all of the parameters 
  * so when changes to any MDFA parameters are made 
- * the dependent components are recomputed right 
- * away
+ * the dependent components are all recomputed so 
+ * as to not have dimensional issues.
  * 
- * @author lisztian
+ *  @author Christian D. Blakely (clisztian@gmail.com)
  *
  */
 
@@ -78,15 +78,15 @@ public class MDFAFactory {
 	 * @param N
 	 *   The number of time series observations for computing 
 	 *   the filter in-sample. Min value is 10 and Max value is
-	 *   1000
+	 *   2000
 	 */
 	public void setSeriesLength(int N) {
 		
 		if(N < 10) {
 			N = 10;
 		}
-		if(N > 1000) {
-			N = 1000;
+		if(N > 2000) {
+			N = 2000;
 		}
 		
 		anyMDFA.setSeriesLength(N);		
@@ -99,10 +99,11 @@ public class MDFAFactory {
 	 * 
 	 * This sets the low-pass cutoff of the filter coefficients.
 	 * The smoothing weight, target filter, and customization matrix
-	 * will be updated as well.
+	 * will be updated as well. The value must be strictly 
+	 * greater than the bandpass cutoff omega0 (zero by default) 
 	 * 
 	 * @param cutoff
-	 *    A double value between [0, pi) 
+	 *    A double value between (0, pi) 
 	 * @throws Exception
 	 */
 	public void setLowpassCutoff(double cutoff) throws Exception {
@@ -110,17 +111,41 @@ public class MDFAFactory {
 		if(cutoff > Math.PI) {
 			cutoff = Math.PI;
 		}
-		if(cutoff < .001) {
-			cutoff = .001;
-		}
+		if(cutoff > anyMDFA.getBandPassCutoff()) {
 		
-		anyMDFA.setLowpassCutoff(cutoff);
-		anyWeight.computeSmoothingWeight(anyMDFA);
-		anyTarget.adjustTargetFilter(anyMDFA);
-		anyCustom.setSmoothWeight(anyWeight);
-		anyCustom.setTargetFilter(anyTarget);
-		anyCustom.setMDFABase(anyMDFA);
+			anyMDFA.setLowpassCutoff(cutoff);	
+			anyWeight.computeSmoothingWeight(anyMDFA);
+			anyTarget.adjustTargetFilter(anyMDFA);
+			anyCustom.setSmoothWeight(anyWeight);
+			anyCustom.setTargetFilter(anyTarget);
+			anyCustom.setMDFABase(anyMDFA);
+		}
 	}
+	
+	/**
+	 * 
+	 * In the case of a bandpass filter, sets the 
+	 * bandpass cutoff between 0 and the given omega. Value 
+	 * must be strictly less than the lowpass_cutoff or the default
+	 * value of zero (lowpass) will be kept. 
+	 * 
+	 * 
+	 * @param omega The bandpass cutoff strictly less than 
+	 *    lowpass cutoff
+	 * @throws Exception 
+	 */
+	public void setBandpassCutoff(double omega) throws Exception {
+		
+		if(omega < anyMDFA.getLowPassCutoff()) {
+			
+			anyMDFA.setBandPassCutoff(omega);
+			anyTarget.adjustTargetFilter(anyMDFA);
+			anyCustom.setSmoothWeight(anyWeight);
+			anyCustom.setTargetFilter(anyTarget);
+			anyCustom.setMDFABase(anyMDFA);		
+		}
+	}
+	
 	
 	/**
 	 * 
@@ -367,6 +392,10 @@ public class MDFAFactory {
 	
 	public final double getLowPassCutoff() {
 		return anyMDFA.getLowPassCutoff();
+	}
+	
+	public final double getBandPassCutoff() {
+		return anyMDFA.getBandPassCutoff();
 	}
 
 	public final double getLambda() {

@@ -40,7 +40,7 @@ public class PriceSeries implements MdfaSeries {
 
 	
 	@Override
-	public void addValue(double val, String date) {		
+	public void addValue(String date, double val) {		
 		seriesTransform.addPrice(timeSeries, val, date);		
 	}
 

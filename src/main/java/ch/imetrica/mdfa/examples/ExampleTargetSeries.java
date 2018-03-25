@@ -21,7 +21,7 @@ public class ExampleTargetSeries {
 		for(int i = 0; i < MAX_OBS; i++) {
 			
 			TimeSeriesEntry<Double> observation = marketDataFeed.getNextObservation();
-			target.addValue(observation.getValue(), observation.getDateTime());
+			target.addValue(observation.getDateTime(), observation.getValue());
 			
 		}
 		

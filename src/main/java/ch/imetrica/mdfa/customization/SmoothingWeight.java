@@ -1,7 +1,5 @@
 package ch.imetrica.mdfa.customization;
 
-import org.apache.commons.math3.complex.Complex;
-
 import ch.imetrica.mdfa.mdfa.MDFABase;
 
 public class SmoothingWeight {

@@ -124,7 +124,7 @@ public class MultivariateSeries {
     	
     	double sigVal = 0;
     	for(int i = 0; i < anySeries.size(); i++) { 		
-    		anySeries.get(i).addValue(val[i], date);
+    		anySeries.get(i).addValue(date, val[i]);
     		
     		if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
 				sigVal += ((SignalSeries) anySeries.get(i)).getLatestSignalValue();
@@ -153,7 +153,7 @@ public class MultivariateSeries {
     	
     	double sigVal = 0;
     	for(int i = 0; i < anySeries.size(); i++) { 		
-    		anySeries.get(i).addValue(val.get(i), date);
+    		anySeries.get(i).addValue(date, val.get(i));
     		
     		if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
 				sigVal += ((SignalSeries) anySeries.get(i)).getLatestSignalValue();
@@ -412,8 +412,9 @@ public class MultivariateSeries {
 	 *    The format of the datetime stamp (usually something like 
 	 *    "yyyy-MM-dd HH:mm:ss")
 	 */
-	public void setDateFormat(String format) {
+	public MultivariateSeries setDateFormat(String format) {
 		this.formatter = DateTimeFormat.forPattern(format);
+		return this;
 	}
 	
 	private void addSignalToAggregate(SignalSeries signal) throws Exception {
@@ -435,8 +436,7 @@ public class MultivariateSeries {
 			  if(current.equals(aggregateSignal.get(i).getDateTime())) {
 				  
 				  double val = aggregateSignal.get(i).getValue() + signal.getSignalValue(i);
-				  aggregateSignal.set(i, new TimeSeriesEntry<Double>(current, val));
-				  
+				  aggregateSignal.set(i, new TimeSeriesEntry<Double>(current, val));	  
 			  }
 			  else {
 				  throw new Exception("Dates do not match of the signals: " + current + " is not " + aggregateSignal.get(i).getDateTime());

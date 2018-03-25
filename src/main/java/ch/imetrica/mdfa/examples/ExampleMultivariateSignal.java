@@ -54,8 +54,7 @@ public class ExampleMultivariateSignal {
 		        shift_const);
 		
 		
-		MDFAFactory anyMDFAFactory = new MDFAFactory(anyMDFA);
-		MDFASolver mySolver = new MDFASolver(anyMDFAFactory);
+		MDFASolver mySolver = new MDFASolver(anyMDFA);
 		
 		
 		String[] dataFiles = new String[3];

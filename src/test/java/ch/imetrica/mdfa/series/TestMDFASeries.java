@@ -41,8 +41,8 @@ public class TestMDFASeries {
 		
 		
 		TargetSeries target = new TargetSeries(price, 1.0, false);
-		target.addValue(10.0, "13.03.2018");
-		target.addValue(11.0, "14.03.2018");
+		target.addValue("13.03.2018", 10.0);
+		target.addValue("14.03.2018", 11.0);
 		
 				
 		assertEquals(1.0, target.getTargetValue(target.size()-1), eps);
@@ -70,8 +70,8 @@ public class TestMDFASeries {
 		price.add(new TimeSeriesEntry<Double>("12.03.2018", 9.0));
 		
 		TargetSeries target = new TargetSeries(price, 0.99999, false);
-		target.addValue(10.0, "13.03.2018");
-		target.addValue(11.0, "14.03.2018");
+		target.addValue("13.03.2018", 10.0);
+		target.addValue("14.03.2018", 11.0);
 						
 		double[] coeffs = new double[]{.2, .4, .1, .5};
 		
@@ -95,8 +95,8 @@ public class TestMDFASeries {
 		}
 				
 		TargetSeries targetDiff = new TargetSeries(price, 1.0, false);
-		targetDiff.addValue(10.0, "13.03.2018");
-		targetDiff.addValue(11.0, "14.03.2018");
+		targetDiff.addValue("13.03.2018", 10.0);
+		targetDiff.addValue("14.03.2018", 11.0);
 						
 		
 		try {
@@ -171,8 +171,8 @@ public class TestMDFASeries {
 		price.add(new TimeSeriesEntry<Double>("12.03.2018", 9.0));
 		
 		TargetSeries target = new TargetSeries(price, 0.99999, false);
-		target.addValue(10.0, "13.03.2018");
-		target.addValue(11.0, "14.03.2018");
+		target.addValue("13.03.2018", 10.0);
+		target.addValue("14.03.2018", 11.0);
 						
 		double[] coeffs = new double[]{.2, .4, .1, .5};
 		double[] preFilter = new double[]{1.0, 0.0};
@@ -200,8 +200,8 @@ public class TestMDFASeries {
 		}
 				
 		TargetSeries targetDiff = new TargetSeries(price, 1.0, false);
-		targetDiff.addValue(10.0, "13.03.2018");
-		targetDiff.addValue(11.0, "14.03.2018");
+		targetDiff.addValue("13.03.2018", 10.0);
+		targetDiff.addValue("14.03.2018", 11.0);
 						
 		
 		try {

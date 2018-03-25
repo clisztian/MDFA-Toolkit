@@ -27,7 +27,9 @@ import ch.imetrica.mdfa.mdfa.MDFABase;
 public class TargetFilter {
 
 	
+
 	private double cutoff;
+	private double omega0 = 0.0;
 	private double[] targetGamma;
 	
 	/**
@@ -42,6 +44,8 @@ public class TargetFilter {
 	public TargetFilter(MDFABase anyMDFA) {
 		
 		this.cutoff = anyMDFA.getLowPassCutoff();
+		this.omega0 = anyMDFA.getBandPassCutoff();
+		
 		computeTargetFilter(anyMDFA);
 	}
 	
@@ -53,36 +57,36 @@ public class TargetFilter {
 		
 		targetGamma = new double[K1];
 				
+		int omega_Gamma0 = (int)(omega0*K/Math.PI);
 	    int omega_Gamma = (int)(cutoff*K/Math.PI);
 		
 		for(int i = 0; i <= K; i++) {
 			
-			if(i <= omega_Gamma) {
+			if(i >= omega_Gamma0 && i <= omega_Gamma) {
 				targetGamma[i] = 1.0;
 			}
 		}		
 	}
+	
 
 	public void adjustTargetFilter(MDFABase anyMDFA) {
 		
 		int N = anyMDFA.getSeriesLength();
 		double cutoff = anyMDFA.getLowPassCutoff();
 		
-		int K = (int)Math.ceil(N/2.0);
-		int K1 = K+1;
-				
+		int K = (int)Math.ceil(N/2.0);				
 	    int omega_Gamma = (int)(cutoff*K/Math.PI);
-		
+	    int omega_Gamma0 = (int)(omega0*K/Math.PI);
+	    
 		for(int i = 0; i <= K; i++) {
 			
-			if(i <= omega_Gamma) {
+			if(i >= omega_Gamma0 && i <= omega_Gamma) {
 				targetGamma[i] = 1.0;
 			}
 			else {
 				targetGamma[i] = 0.0;
 			}
-		}
-		
+		}	
 	}
 	
 	/**

@@ -85,7 +85,7 @@ public class ExampleAdaptiveSignal {
 				multiSeries.addValue(observation.getValue(), observation.getDateTime());
 
 				TimeSeriesEntry<Double> eemObs = eemMarketFeed.getNextObservation();
-				eemSignal.addValue(eemObs.getValue(), eemObs.getDateTime());
+				eemSignal.addValue(eemObs.getDateTime(), eemObs.getValue());
 			}
 			
 			multiSeries.computeFilterCoefficients();
@@ -96,7 +96,7 @@ public class ExampleAdaptiveSignal {
 				multiSeries.addValue(observation.getValue(), observation.getDateTime());
 				
 				TimeSeriesEntry<Double> eemObs = eemMarketFeed.getNextObservation();
-				eemSignal.addValue(eemObs.getValue(), eemObs.getDateTime());
+				eemSignal.addValue(eemObs.getDateTime(), eemObs.getValue());
 				
 			}
 			

@@ -42,8 +42,9 @@ public interface MdfaSeries extends Serializable {
 		
 		PRICE,				/** Price of traded asset */
 		TARGET,				/** Target series that generates signal, needs coeffs */
-		EXPLANATORY,		/** Any explanatory series used to compute target signal, needs coeffs */
+		LABEL,				/** Any labeled series used for machine learning apps */
 		SIGNAL,				/** A filtered series, coeffs are optional */
+		MULTISIGNAL,		/** A MultivariateSignal */
 		VOLA,				/** A price volatility series - implied volatility */
 		TECHNICAL;			/** Any other technical indicator */
 	}
@@ -58,7 +59,7 @@ public interface MdfaSeries extends Serializable {
      * @param date
      *  		  The date of the entry
      */
-	void addValue(double val, String date);
+	void addValue(String date, double val);
 	
 	/**
      * Gets the latest time series value

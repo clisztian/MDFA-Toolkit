@@ -87,7 +87,7 @@ public class TargetSeries implements MdfaSeries {
      * 
      */
 	@Override
-	public void addValue(double val, String date) {
+	public void addValue(String date, double val) {
 		
 		seriesTransform.addValue(timeSeries, val, date);
 	}
@@ -211,77 +211,6 @@ public class TargetSeries implements MdfaSeries {
 	}
 	
 	
-	public static void main(String[] args) {
-		
-		
-		String dataFile = "data/EUR.USD.csv";
-		TimeSeries<Double> rawSeries = new TimeSeries<Double>();
-		CsvReader marketDataFeed;
-		
-		int nObs = 0;
-		int MAX_OBS = 500;
-		
-		try{
-			
-			 /* Read data market feed from CSV filer and it's headers*/	
-			 marketDataFeed = new CsvReader(dataFile);
-			 marketDataFeed.readHeaders();
-
-			 while (marketDataFeed.readRecord()) {
-				 
-				double price = (new Double(marketDataFeed.get("close"))).doubleValue();
-				String date_stamp = marketDataFeed.get("dateTime");
-				
-				rawSeries.add(date_stamp, price);
-				nObs++;
-				
-				if(nObs == MAX_OBS) break;
-			 }
-			 
-			 
-			 TargetSeries[] testFracDiff = new TargetSeries[3];
-				
-			 testFracDiff[0] = new TargetSeries(rawSeries, 0.0, true);
-			 testFracDiff[1] = new TargetSeries(rawSeries, 0.4, true);
-			 testFracDiff[2] = new TargetSeries(rawSeries, 1.0, true);
-			 testFracDiff[0].setDateFormat("dd.MM.yyyy");
-			 testFracDiff[1].setDateFormat("dd.MM.yyyy");
-			 testFracDiff[2].setDateFormat("dd.MM.yyyy");
-				
-			 TargetSeries.plotMultipleSeries(testFracDiff);
-			 
-			 
-			 
-			 while (marketDataFeed.readRecord()) {
-				 
-				double price = (new Double(marketDataFeed.get("close"))).doubleValue();
-				String date_stamp = marketDataFeed.get("dateTime");
-				
-				testFracDiff[0].addValue(price, date_stamp);
-				testFracDiff[1].addValue(price, date_stamp);
-				testFracDiff[2].addValue(price, date_stamp);
-								
-				nObs++;
-				
-				if(nObs == (MAX_OBS + 400)) break;
-			 }
-			 
-			 TargetSeries.plotMultipleSeries(testFracDiff);
-			 
-			 
-			 
-			 
-		}
-		catch (FileNotFoundException e) { e.printStackTrace(); throw new RuntimeException(e); } 
-		catch (IOException e) { e.printStackTrace(); throw new RuntimeException(e);}
-		
-		
-		
-		
-		
-		
-		
-	}
 
 
 	@Override

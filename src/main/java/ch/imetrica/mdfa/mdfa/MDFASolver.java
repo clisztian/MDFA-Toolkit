@@ -33,6 +33,10 @@ public class MDFASolver {
 		this.anyMDFAFactory = mdfa;
 	}
 	
+	public MDFASolver(MDFABase anyMDFA) {
+		this.anyMDFAFactory = new MDFAFactory(anyMDFA);
+	}
+	
 
 	
 	/**

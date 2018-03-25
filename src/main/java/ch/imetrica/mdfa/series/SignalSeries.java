@@ -226,9 +226,9 @@ public class SignalSeries implements MdfaSeries {
      *  		  The date of the entry
      */
 	@Override
-	public void addValue(double val, String date) {
+	public void addValue(String date, double val) {
 		
-		target.addValue(val, date);
+		target.addValue(date, val);
 		
 		if(coeffs != null) {
 			
@@ -472,67 +472,6 @@ public class SignalSeries implements MdfaSeries {
 		return this.target;
 	}
 	
-	
-	public static void main(String[] args) {
-		
-		
-		String dataFile = "data/EURUSD.30min.csv";
-		TimeSeries<Double> rawSeries = new TimeSeries<Double>();
-		CsvReader marketDataFeed;
-		
-		int nObs = 0;
-		int MAX_OBS = 1200;
-		
-		try{
-			
-			 /* Read data market feed from CSV filer and it's headers*/	
-			 marketDataFeed = new CsvReader(dataFile);
-			 marketDataFeed.readHeaders();
-
-			 while (marketDataFeed.readRecord()) {
-				 
-				double price = (new Double(marketDataFeed.get("bid"))).doubleValue();
-				String date_stamp = marketDataFeed.get("dateTime");				
-				rawSeries.add(date_stamp, price);
-				
-				nObs++;
-				
-				if(nObs == MAX_OBS) break;
-			 }
-			 
-			 double[] filter = (new WhiteNoiseFilter(Math.PI/6.0, 0, 50)).getFilterCoefficients();
-			 TargetSeries myTarget = new TargetSeries(rawSeries, 0.2, true);
-			 
-			 
-			 SignalSeries signal = new SignalSeries(filter, myTarget, "yyyy-MM-dd HH:mm:ss");
-		
-		     
-			 SignalSeries.plotSignal(signal);
-			 
-			 
-			 while (marketDataFeed.readRecord()) {
-				 
-					double price = (new Double(marketDataFeed.get("bid"))).doubleValue();
-					String date_stamp = marketDataFeed.get("dateTime");				
-					signal.addValue(price, date_stamp);
-					
-					nObs++;
-					
-					if(nObs == MAX_OBS + 200) break;
-					
-			 }
-			 
-			 System.out.println(signal.toString());
-			 SignalSeries.plotSignal(signal);
-			 
-		
-		}
-		catch (FileNotFoundException e) { e.printStackTrace(); throw new RuntimeException(e); } 
-		catch (IOException e) { e.printStackTrace(); throw new RuntimeException(e);} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-	}
 
 	@Override
 	public void setName(String name) {
