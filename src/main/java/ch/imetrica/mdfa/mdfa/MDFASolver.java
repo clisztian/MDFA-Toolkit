@@ -76,6 +76,7 @@ public class MDFASolver {
 		Regularization anyReg = anyMDFAFactory.getRegularization();
 		Customization anyCustomization = anyMDFAFactory.getCustomization();
 		
+		
 		MdfaMatrix des = anyReg.getQSmooth().mdfaMatrixMultTransB(anyReg.getDesignMatrix());
 		MdfaMatrix reg_mat = anyReg.getDesignMatrix().mdfaMatrixMult(des);
 		MdfaMatrix temp = anyReg.getQSmooth().mdfaMatrixMult(anyReg.getWeight());
@@ -111,6 +112,24 @@ public class MDFASolver {
         reg_xtxy.mdfaMatrixScale(-dev);
         b.mdfaMatrixAdd(reg_xtxy);
 
+        
+		if(anyMDFAFactory.getHybridForecast() > 0) {
+			
+			MdfaMatrix hreX = anyCustomization.getHybridREX().mdfaMatrixMultTransB(anyReg.getDesignMatrix());
+			MdfaMatrix himX = anyCustomization.getHybridIMX().mdfaMatrixMultTransB(anyReg.getDesignMatrix());
+			
+			MdfaMatrix hXtX = hreX.mdfaMatrixMultTransA(hreX);
+			MdfaMatrix himXtX = himX.mdfaMatrixMultTransA(himX);
+			
+			MdfaMatrix hb = hreX.mdfaMatrixMultTransA(anyCustomization.getHybridGamma());
+			b.mdfaMatrixAdd(hb);
+			
+			hXtX.mdfaMatrixAdd(himXtX);
+			XtX.mdfaMatrixAdd(hXtX);
+		}
+        
+        
+        
         reg_mat.mdfaMatrixScale(dev);
         XtX.mdfaMatrixAdd(reg_mat);
      

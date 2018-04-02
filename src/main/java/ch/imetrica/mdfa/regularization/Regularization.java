@@ -93,7 +93,24 @@ public class Regularization {
 		return w_eight;
 	}
 	
-	
+	/**
+	 * 
+	 * Computes the weight matrix for the 
+	 * constraints on the filter coefficients (i1 and i2).
+	 * The constraints are defined by the value and derivative of
+	 * the frequency response function evaluated at zero. 
+	 * This means for the i1 constraint, the sum of the coefficients
+	 * should equal the value of the target filter at zero, namely
+	 * <code>sum_j=0^L b_j = \Gamma(0)</code>
+	 * This should be one for a low pass filter and zero for a bandpass
+	 * filter. This value is set by the weight constraint variable
+	 * 
+	 * For the i2 constraint, the weight matrix enforces the constraint 
+	 * <code>sum_j=0^L b_j * j = shift_constraint</code>. The matrix 
+	 * should be recomputed anytime L, i1,i2,lag, shift, nseries, 
+	 * target filter are ever changed.
+	 * 
+	 */
 	public void computeWeightMatrix() {
 		
 		
@@ -104,8 +121,11 @@ public class Regularization {
 		int nseries = anyMDFA.getNSeries();
 		double shift_constraint = anyMDFA.getShift_constraint();
 		double[] weight_constraint = new double[nseries];
-		weight_constraint[0] = 1.0;	
 		w_eight = new MdfaMatrix(nseries*L, 1);
+		
+		if(anyMDFA.getBandPassCutoff() == 0) {
+			weight_constraint[0] = 1.0;	
+		}
 		
 		
 	    if(i1 == 1) {

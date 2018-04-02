@@ -41,6 +41,13 @@ public class Customization {
 	private MdfaMatrix IMX;
 	private MdfaMatrix rh_gamma;
 	
+	/* The hybrid forecast component:
+	 * Only initiated if HybridForecast > 0 
+	 */
+	private MdfaMatrix hREX;
+	private MdfaMatrix hIMX;
+	private MdfaMatrix hgamma;
+	
 	/**
 	 * Initiate customization with anyMDFA MDFABase object
 	 * 
@@ -167,6 +174,14 @@ public class Customization {
 		REX = new MdfaMatrix(K1, nseries*L);
 		IMX = new MdfaMatrix(K1, nseries*L);
 		rh_gamma = new MdfaMatrix(K1, 1);
+		
+		if(anyMDFA.getHybridForecast() > 0) {
+			
+			hREX = new MdfaMatrix(K1, nseries*L);
+			hIMX = new MdfaMatrix(K1, nseries*L);
+			hgamma = new MdfaMatrix(K1, 1);
+		}
+		
 	}
 	
 	/**
@@ -190,6 +205,7 @@ public class Customization {
 	
 		double lambda = anyMDFA.getLambda();
 		double lag    = anyMDFA.getLag();
+		double hybrid = anyMDFA.getHybridForecast();
 		int nseries   = anyMDFA.getNSeries();	
 		int N         = anyMDFA.getSeriesLength();
 		int L         = anyMDFA.getFilterLength();
@@ -197,26 +213,16 @@ public class Customization {
 		
 		int K = (int)(N/2.0);
 		int K1 = K+1;
-		int targetIndx = 0;
-		
 		Complex[][] mdfaWeight = new Complex[nseries][K1];
 
 		for(int i = 0; i < nseries; i++) {
 			
 			Complex[] dft = anySpectralDensity.getSpectralDensity(i);
 			for(int k = 0; k < K1; k++) {				
-				mdfaWeight[i][k] = dft[k].multiply(anyWeight.getWeight(k));			
+				mdfaWeight[i][k] = dft[k];			
 			}		
 		}
 		
-		/* The target spectral information is extracted here */
-//		Complex[] args = new Complex[K1];
-//		for(int k = 0; k < K1; k++) {
-//			
-//			double val = anyTarget.getValue(k)*mdfaWeight[targetIndx][k].abs();
-//			rh_gamma.mdfaMatrixSet(k, 0, val); 
-//			args[k] = (new Complex(0, -mdfaWeight[targetIndx][k].getArgument())).exp();
-//		}
 		
 		Complex[] args = new Complex[K1];
 		for(int k = 0; k < K1; k++) {
@@ -224,10 +230,13 @@ public class Customization {
 			double val = anyTarget.getValue(k)*anySpectralDensity.getTargetSpectralDensity(k).abs();
 			rh_gamma.mdfaMatrixSet(k, 0, val); 
 			args[k] = (new Complex(0, -anySpectralDensity.getTargetSpectralDensity(k).getArgument())).exp();
+			
+			if(anyMDFA.getHybridForecast() > 0) {
+				hgamma.mdfaMatrixSet(k, 0, anySpectralDensity.getTargetSpectralDensity(k).abs());
+			}
 		}
 		
-		
-		
+
 		for(int i = 0; i < nseries; i++) {
 			for(int k = 0; k < K1; k++) {
 				
@@ -243,10 +252,19 @@ public class Customization {
 		    		  
 		    		  double lambdaWeight = Math.sqrt(1.0 + anyTarget.getValue(j)*lambda);	    		  
 		    		  Complex phi = new Complex(0, (l-1.0-lag)*M_PI*j/K);	    		  
-		    		  Complex base = (phi.exp()).multiply(mdfaWeight[i][j]);
+		    		  Complex base = (phi.exp()).multiply(mdfaWeight[i][j].multiply(anyWeight.getWeight(j)));
 		    		  
 		    		  REX.mdfaMatrixSet(j, L*i +(l-1), base.getReal());  
-		    		  IMX.mdfaMatrixSet(j, L*i +(l-1), lambdaWeight*base.getImaginary()); 	        
+		    		  IMX.mdfaMatrixSet(j, L*i +(l-1), lambdaWeight*base.getImaginary());
+		    		  
+		    		  if(anyMDFA.getHybridForecast() > 0) {
+		    			  
+		    			  Complex hphi = new Complex(0, l*M_PI*j/K);	    		  
+			    		  Complex hbase = (hphi.exp()).multiply(mdfaWeight[i][j]);
+		    			  
+			    		  hREX.mdfaMatrixSet(j, L*i +(l-1), hybrid*hbase.getReal());  
+			    		  hIMX.mdfaMatrixSet(j, L*i +(l-1), hybrid*hbase.getImaginary());
+		    		  }		    		  
 		          }
 		      }
 		}
@@ -267,4 +285,17 @@ public class Customization {
 	public MdfaMatrix getGamma() {
 		return this.rh_gamma;
 	}
+	
+	public MdfaMatrix getHybridREX() {
+		return this.hREX;
+	}
+	
+	public MdfaMatrix getHybridIMX() {
+		return this.hIMX;
+	}
+	
+	public MdfaMatrix getHybridGamma() {
+		return this.hgamma;
+	}
+	
 }

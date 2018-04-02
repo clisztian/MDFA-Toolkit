@@ -1,5 +1,7 @@
 package ch.imetrica.mdfa.plotutil;
 
+import java.awt.Color;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -185,6 +187,7 @@ public class TimeSeriesPlot extends ApplicationFrame {
     				signalSeries[m].add(current, sigval[m]);
     			}               
 			}
+
 			dataset.addSeries(targetSeries);
 		
 			for(int m = 0; m < M; m++) {

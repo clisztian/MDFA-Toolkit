@@ -357,6 +357,13 @@ public class MDFAFactory {
 	}
 	
 	
+	public void setHybridForecast(double hybridForecast) throws Exception {
+		
+		anyMDFA.setHybridForecast(hybridForecast);
+		anyCustom.setMDFABase(anyMDFA);
+	}
+	
+	
 	public SmoothingWeight getSmoothingWeight() {
 		return anyWeight;
 	}
@@ -434,6 +441,9 @@ public class MDFAFactory {
 		return anyMDFA.getShift_constraint();
 	}
 
+	public final double getHybridForecast() {
+		return anyMDFA.getHybridForecast();
+	}
 
 	public void setCustomization(Customization anyCustom2) {
 		this.anyCustom = anyCustom2;

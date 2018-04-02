@@ -15,13 +15,15 @@ public class ExampleMutliSignal {
 		
 		MDFABase[] anyMDFAs = new MDFABase[3];
 		
-		anyMDFAs[0] = (new MDFABase()).setLowpassCutoff(Math.PI/15.0)
+		anyMDFAs[0] = (new MDFABase()).setLowpassCutoff(Math.PI/20.0)
 				.setI1(1)
-				.setI2(1)
-				.setSmooth(.1)
+				.setHybridForecast(.01)
+				.setSmooth(.3)
+				.setDecayStart(.1)
+				.setDecayStrength(.2)
 				.setLag(-2.0)
 				.setLambda(2.0)
-				.setShift_constraint(-2.0)
+				.setAlpha(2.0)
 				.setSeriesLength(400);
 		
 		anyMDFAs[1] = (new MDFABase()).setLowpassCutoff(Math.PI/10.0)
@@ -36,7 +38,7 @@ public class ExampleMutliSignal {
 		
 		
 		TimeSeries<Double> appleSeries = CsvFeed.getChunkOfData(0, 600, "data/AAPL.IB.dat", "dateTime", "close");	
-		MultivariateSignalSeries signal = new MultivariateSignalSeries(new TargetSeries(appleSeries, .4, true), 
+		MultivariateSignalSeries signal = new MultivariateSignalSeries(new TargetSeries(appleSeries, .6, true), 
 				anyMDFAs, "yyyy-MM-dd")
 				.computeFilterCoefficients()
 				.computeSignalsFromTarget();

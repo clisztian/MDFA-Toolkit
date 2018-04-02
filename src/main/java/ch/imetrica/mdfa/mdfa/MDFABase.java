@@ -33,6 +33,11 @@ public class MDFABase {
 	private double lag = 0.0;			
 	
 	/**
+	 * hybrid forecast parameter
+	 */
+	private double hybridForecast = 0.0;
+	
+	/**
 	 *  Frequency low-pass cutoff
 	 */
 	private double lowpass_cutoff = Math.PI/10.0;
@@ -263,5 +268,15 @@ public class MDFABase {
 			this.omega0 = omega;
 		}
 		return this;	
+	}
+
+	public double getHybridForecast() {
+		return hybridForecast;
+	}
+
+	public MDFABase setHybridForecast(double hybridForecast) {
+		
+		this.hybridForecast = hybridForecast;
+		return this;
 	}
 }

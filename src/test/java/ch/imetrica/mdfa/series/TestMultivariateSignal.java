@@ -79,7 +79,8 @@ public class TestMultivariateSignal {
 				.setBandPassCutoff(Math.PI/15.0);
 		
 		anyMDFAs[2] = (new MDFABase()).setLowpassCutoff(Math.PI/5.0)
-                .setBandPassCutoff(Math.PI/10.0);
+                .setBandPassCutoff(Math.PI/10.0)
+                .setI1(1);
 		
 		
 		TimeSeries<Double> appleSeries = CsvFeed.getChunkOfData(0, 400, "data/AAPL.IB.dat", "dateTime", "close");	
@@ -124,6 +125,13 @@ public class TestMultivariateSignal {
 		}
 		assertEquals(-3.0, sum, eps);		
 
+		
+		coeffs = signal.getCoefficients(2);
+		sum = 0.0;
+		for(int j = 0; j < coeffs.length; j++) {
+			sum += coeffs[j];
+		}
+		assertEquals(0.0, sum, eps);
 	}
 	
 	

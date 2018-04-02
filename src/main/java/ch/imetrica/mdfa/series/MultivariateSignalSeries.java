@@ -311,6 +311,19 @@ public class MultivariateSignalSeries implements MdfaSeries {
 	}
 
 	
+	/**
+	 * Creates unbiased white noise filters on the 
+	 * @param L
+	 */
+	public void setWhiteNoisePrefilters(int L) {
+		
+		
+	}
+
+	
+	
+	
+	
 	public void plotSignals(String myTitle) throws Exception {
 		
 		final String title = myTitle;
@@ -321,27 +334,6 @@ public class MultivariateSignalSeries implements MdfaSeries {
 	}
 	
 	
-	
-	
-	
-	
-	@Override
-	public TimeSeriesEntry<Double> getLatest() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public TimeSeries<Double> getTimeSeries() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public TimeSeries<Double> getLatestValues(int n) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public SeriesType getSeriesType() {
@@ -350,8 +342,7 @@ public class MultivariateSignalSeries implements MdfaSeries {
 
 	@Override
 	public void setDateFormat(String anyformat) {
-		// TODO Auto-generated method stub
-		
+		this.formatter = DateTimeFormat.forPattern(anyformat);
 	}
 
 	@Override
@@ -401,11 +392,37 @@ public class MultivariateSignalSeries implements MdfaSeries {
 	}
 
 
+	/**
+	 * Returns the number of signals in 
+	 * this multisignal object. Determined 
+	 * by number of MDFASolvers
+	 * 
+	 * @return Numbero of signals 
+	 */
 	public int getNumberSignals() {
 		
 		return bcoeffs.size();
 	}
 
+	
+	
+	@Override
+	public TimeSeriesEntry<Double> getLatest() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public TimeSeries<Double> getTimeSeries() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public TimeSeries<Double> getLatestValues(int n) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	
 	
