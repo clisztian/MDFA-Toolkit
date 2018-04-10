@@ -171,7 +171,7 @@ public class TestMultivariateSignal {
 		assertEquals("2014-08-05", signal.getLatestTargetDate());
 		
 		signalOutput = signal.getLatestSignalValue();		
-		assertEquals(-0.008502414331387839, signalOutput[2], eps);
+		assertEquals(-0.010498857340813, signalOutput[2], eps);
 		
 	}
 	

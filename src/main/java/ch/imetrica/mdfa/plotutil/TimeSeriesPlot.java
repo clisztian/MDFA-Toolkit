@@ -17,6 +17,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import ch.imetrica.mdfa.series.MultivariateFXSeries;
 import ch.imetrica.mdfa.series.MultivariateSeries;
 import ch.imetrica.mdfa.series.MultivariateSignalSeries;
 import ch.imetrica.mdfa.series.SignalSeries;
@@ -155,6 +156,56 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	        setContentPane(chartPanel);
 			
 			
+		}
+
+		public TimeSeriesPlot(String title, MultivariateFXSeries multivariateFXSeries) {
+			
+			super(title);
+	        final XYDataset dataset = createDataset(title, multivariateFXSeries, multivariateFXSeries.getDateFormat());
+	        final JFreeChart chart = createChart(dataset);
+	        final ChartPanel chartPanel = new ChartPanel(chart);
+	        chartPanel.setPreferredSize(new java.awt.Dimension(900, 570));
+	        chartPanel.setMouseZoomable(true, false);
+	        setContentPane(chartPanel);
+		}
+
+		private XYDataset createDataset(String title, MultivariateFXSeries multivariateFXSeries,
+				DateTimeFormatter formatter) {
+
+			TimeSeriesCollection dataset = new TimeSeriesCollection();
+			
+			int M = multivariateFXSeries.getNumberSignals();
+			
+			final TimeSeries[] signalSeries = new TimeSeries[M];
+			for(int m = 0; m < M; m++) {
+				signalSeries[m] = new TimeSeries("Signal " + m);
+			}
+			
+			final TimeSeries targetSeries = new TimeSeries("Target");
+			
+			int N = multivariateFXSeries.size();
+			for(int i = 0; i < N; i++) {
+				
+				String datetime = multivariateFXSeries.getTargetDate(i);
+				double targetVal = multivariateFXSeries.getTargetValue(i);
+				      
+                DateTime sigDateTime = getSignalDateTime(datetime, formatter);
+                Day current = new Day(sigDateTime.toDate());   
+                targetSeries.add(current, targetVal);
+                
+                double[] sigval = multivariateFXSeries.getSignalValue(i);
+                
+                for(int m = 0; m < M; m++) {  	
+    				signalSeries[m].add(current, sigval[m]);
+    			}               
+			}
+
+			dataset.addSeries(targetSeries);
+		
+			for(int m = 0; m < M; m++) {
+				dataset.addSeries(signalSeries[m]);
+			} 	
+	    	return dataset;
 		}
 
 		private XYDataset createDataset(String title, MultivariateSignalSeries multivariateSignalSeries,

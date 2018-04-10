@@ -67,7 +67,7 @@ public class Transform {
      */
 	private void computeFractionalDifferenceWeights(double thresh) {
 		
-	  if(d > 0) {
+	  if(d >= 0) {
 		  
 		double wk = 1.0;
 		double wk1;
@@ -121,45 +121,51 @@ public class Transform {
 		
 		TimeSeries<double[]> transformedSeries = new TimeSeries<double[]>();
 	
-		if(d < 1 && d > 0) {
-		
-			double sum = 0;
-			int filter_length = 0;
-			int w_length = f_weights.length;
-			
-			for(int N = 1; N < anyseries.size(); N++) {
-			
-				filter_length = Math.min(N+1, w_length);	
-				sum = 0;
-				for (int l = 0; l < filter_length; l++) {
-					sum = sum + f_weights[l]*baseTransform(anyseries.get(N - l).getValue());
-				}
+		if(anyseries.size() > 0) {
 				
-				double[] values = new double[]{sum, anyseries.get(N).getValue()};
-				transformedSeries.add(new TimeSeriesEntry<double[]>(anyseries.get(N).getDateTime(), values));		
-			}		
+			if(d < 1 && d > 0) {
 			
-		}
-		else if(d == 1) {
-			
-			for(int N = 1; N < anyseries.size(); N++) {
+				double sum = 0;
+				int filter_length = 0;
+				int w_length = f_weights.length;
 				
-				double val = baseTransform(anyseries.get(N).getValue()) - 
-						baseTransform(anyseries.get(N-1).getValue());
+				for(int N = 0; N < anyseries.size(); N++) {
 				
-				double[] values = new double[]{val, anyseries.get(N).getValue()};				
-				transformedSeries.add(new TimeSeriesEntry<double[]>(anyseries.get(N).getDateTime(), values));	
+					filter_length = Math.min(N+1, w_length);	
+					sum = 0;
+					for (int l = 0; l < filter_length; l++) {
+						sum = sum + f_weights[l]*baseTransform(anyseries.get(N - l).getValue());
+					}
+					
+					double[] values = new double[]{sum, anyseries.get(N).getValue()};
+					transformedSeries.add(new TimeSeriesEntry<double[]>(anyseries.get(N).getDateTime(), values));		
+				}		
 				
-			}			
-		}
-		else {
-			
-			for(int N = 0; N < anyseries.size(); N++) {
-				double val = baseTransform(anyseries.get(N).getValue());
-				double[] values = new double[]{val, anyseries.get(N).getValue()};				
-				transformedSeries.add(new TimeSeriesEntry<double[]>(anyseries.get(N).getDateTime(), values));	
+			}
+			else if(d == 1) {
 				
-			}					
+				double[] values = new double[]{0.0, anyseries.get(0).getValue()};				
+				transformedSeries.add(0, new TimeSeriesEntry<double[]>(anyseries.get(0).getDateTime(), values));
+				
+				for(int N = 1; N < anyseries.size(); N++) {
+					
+					double val = baseTransform(anyseries.get(N).getValue()) - 
+							baseTransform(anyseries.get(N-1).getValue());
+					
+					values = new double[]{val, anyseries.get(N).getValue()};				
+					transformedSeries.add(new TimeSeriesEntry<double[]>(anyseries.get(N).getDateTime(), values));	
+					
+				}			
+			}
+			else {
+				
+				for(int N = 0; N < anyseries.size(); N++) {
+					double val = baseTransform(anyseries.get(N).getValue());
+					double[] values = new double[]{val, anyseries.get(N).getValue()};				
+					transformedSeries.add(new TimeSeriesEntry<double[]>(anyseries.get(N).getDateTime(), values));	
+					
+				}					
+			}
 		}
 		
 		return transformedSeries;	
@@ -190,7 +196,7 @@ public class Transform {
 		
 		int N = timeSeries.size();
 		
-		if(N > 3) {
+		if(N > 1) {
 		
 			if(d < 1 && d > 0) {
 				
@@ -285,5 +291,65 @@ public class Transform {
 	public void addPrice(TimeSeries<Double> timeSeries, double val, String date) {
 		timeSeries.add(new TimeSeriesEntry<Double>(date, baseTransform(val)));
 	}
+	
+	/**
+	 * Adjusts the fractional differenced series in this 
+	 * 
+	 * 
+	 * @param anySeries
+	 * @param d
+	 */
+	public void adjustFractionalDifference(TimeSeries<double[]> anySeries, double d) {
+		
+		this.d = d;
+		computeFractionalDifferenceWeights(weight_threshold);
+		
+		if(d < 1 && d > 0) {
+			
+			double sum = 0;
+			int filter_length = 0;
+			int w_length = f_weights.length;
+			
+			for(int N = 0; N < anySeries.size(); N++) {
+			
+				filter_length = Math.min(N+1, w_length);	
+				sum = 0;
+				for (int l = 0; l < filter_length; l++) {
+					sum = sum + f_weights[l]*baseTransform(anySeries.get(N - l).getValue()[1]);
+				}
+				
+				double[] values = new double[]{sum, anySeries.get(N).getValue()[1]};
+				anySeries.set(N, new TimeSeriesEntry<double[]>(anySeries.get(N).getDateTime(), values));		
+			}		
+			
+		}
+		else if(d == 1) {
+			
+			
+			double[] values = new double[]{0.0, anySeries.get(0).getValue()[1]};				
+			anySeries.set(0, new TimeSeriesEntry<double[]>(anySeries.get(0).getDateTime(), values));
+			
+			for(int N = 1; N < anySeries.size(); N++) {
+				
+				double val = baseTransform(anySeries.get(N).getValue()[1]) - 
+						baseTransform(anySeries.get(N-1).getValue()[1]);
+				
+				values = new double[]{val, anySeries.get(N).getValue()[1]};				
+				anySeries.set(N, new TimeSeriesEntry<double[]>(anySeries.get(N).getDateTime(), values));
+				
+			}			
+		}
+		else {
+			
+			for(int N = 0; N < anySeries.size(); N++) {				
+				double val = baseTransform(anySeries.get(N).getValue()[1]);	
+				double[] values = new double[]{val, anySeries.get(N).getValue()[1]};				
+				anySeries.set(N, new TimeSeriesEntry<double[]>(anySeries.get(N).getDateTime(), values));				
+			}					
+		}		
+	}
+
+
+	
 		
 }

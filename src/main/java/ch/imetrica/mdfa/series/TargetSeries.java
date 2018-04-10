@@ -1,12 +1,8 @@
 package ch.imetrica.mdfa.series;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import org.jfree.ui.RefineryUtilities;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import com.csvreader.CsvReader;
 
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
 import ch.imetrica.mdfa.transform.Transform;
@@ -182,6 +178,19 @@ public class TargetSeries implements MdfaSeries {
 		}
 		return tostring;
 	}
+	
+	/**
+	 * Adjusts the fractional difference component  
+	 * of the target time series using the raw series
+	 * that is stored in the time series 
+	 * 
+	 * @param d New fractional difference exponent
+	 */
+	public void adjustFractionalDifferenceData(double d) {
+		
+		seriesTransform.adjustFractionalDifference(this.timeSeries, d);		
+	}
+	
 	
 	
 	public void plotSeries() {

@@ -2,6 +2,7 @@ package ch.imetrica.mdfa.datafeeds;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import com.csvreader.CsvReader;
 
@@ -44,6 +45,19 @@ public class CsvFeed {
 		
 		for(int i = 0; i < dataFiles.length; i++) {
 			this.marketDataFeeds[i] = new CsvReader(dataFiles[i]);
+			this.marketDataFeeds[i].readHeaders();
+		}
+		
+		this.dateColumnName = dateName;
+		this.priceColumnName = priceName;
+	}
+	
+	public CsvFeed(ArrayList<String> dataFiles, String dateName, String priceName) throws IOException {
+		
+		this.marketDataFeeds = new CsvReader[dataFiles.size()]; 
+		
+		for(int i = 0; i < dataFiles.size(); i++) {
+			this.marketDataFeeds[i] = new CsvReader(dataFiles.get(i));
 			this.marketDataFeeds[i].readHeaders();
 		}
 		
@@ -131,28 +145,40 @@ public class CsvFeed {
 	public TimeSeriesEntry<double[]> getNextMultivariateObservation() throws Exception {
 		
 		if(marketDataFeeds == null) {
-			throw new <CSVMarketDataFeedEmpty>Exception();
+			throw new Exception();
 		}
 
+		double price;
+		String date_stamp;
 		double[] prices = new double[marketDataFeeds.length];
 		String[] timestamps = new String[marketDataFeeds.length];
 		
-		marketDataFeeds[0].readRecord();
-		double price = (new Double(marketDataFeeds[0].get(priceColumnName))).doubleValue();
-		String date_stamp = marketDataFeeds[0].get(dateColumnName);	
+		if(marketDataFeeds[0].readRecord()) {
 		
-		prices[0] = price;
-		timestamps[0] = date_stamp;
-		
+			price = (new Double(marketDataFeeds[0].get(priceColumnName))).doubleValue();
+			date_stamp = marketDataFeeds[0].get(dateColumnName);	
+			
+			prices[0] = price;
+			timestamps[0] = date_stamp;
+		}
+		else {
+			throw new Exception();
+		}
+			
 		for(int i = 1; i < marketDataFeeds.length; i++) {
 			
-			marketDataFeeds[i].readRecord();
-			price = (new Double(marketDataFeeds[i].get(priceColumnName))).doubleValue();
-			date_stamp = marketDataFeeds[i].get(dateColumnName);		
-			if(!timestamps[0].equals(date_stamp)) {
-				price = -1.0;
+			if(marketDataFeeds[i].readRecord()) {
+				
+				price = (new Double(marketDataFeeds[i].get(priceColumnName))).doubleValue();
+				date_stamp = marketDataFeeds[i].get(dateColumnName);		
+				if(!timestamps[0].equals(date_stamp)) {
+					price = -1.0;
+				}
+				prices[i] = price;
 			}
-			prices[i] = price;
+			else {
+				throw new Exception();
+			}		
 		}		
 		return (new TimeSeriesEntry<double[]>(timestamps[0], prices));
 	}

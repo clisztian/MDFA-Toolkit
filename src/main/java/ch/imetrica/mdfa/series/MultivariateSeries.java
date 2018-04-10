@@ -3,12 +3,10 @@ package ch.imetrica.mdfa.series;
 import java.util.ArrayList;
 
 import org.jfree.ui.RefineryUtilities;
-import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import ch.imetrica.mdfa.matrix.MdfaMatrix;
-import ch.imetrica.mdfa.mdfa.MDFABase;
 import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
@@ -48,7 +46,7 @@ import ch.imetrica.mdfa.spectraldensity.SpectralBase;
 public class MultivariateSeries {
 
 	
-	TimeSeries<double[]> labeledSignal;
+
 	TimeSeries<Double> aggregateSignal;
 	ArrayList<MdfaSeries> anySeries;
 	MDFASolver anySolver;
@@ -248,7 +246,7 @@ public class MultivariateSeries {
 				
 				addSignalToAggregate((SignalSeries) anySeries.get(i));
 				signal++;
-			}	
+			}
 		}
 	}
 	 
@@ -268,7 +266,7 @@ public class MultivariateSeries {
 	 * signals in the multivariate time series list
 	 * @return
 	 */
-	public int getNumberSignal() {
+	public int getNumberOfSignals() {
 		return numberOfSignals;
 	}
 	
@@ -324,6 +322,10 @@ public class MultivariateSeries {
 	 */
 	public ArrayList<double[]> getMDFACoeffs() {
 		
+		if(getNumberOfSignals() == 0) {
+			return null;
+		}
+		
 		ArrayList<double[]> allCoeffs = new ArrayList<double[]>();
 		
 		for(int i = 0; i < anySeries.size(); i++) {
@@ -370,6 +372,25 @@ public class MultivariateSeries {
 	   	  System.out.println("Need more than 10 signal observations");
 	     }
 		
+	}
+	
+	/**
+	 * Return the ith TimeSeriesEntry of the aggregateSignal
+	 * @param i
+	 * @return TimeSeriesEntry<Double>
+	 */
+	public TimeSeriesEntry<Double> getAggregateSignal(int i) {
+		return aggregateSignal.get(i);
+	}
+	
+	public int getSignalSize() {
+		
+		if(aggregateSignal != null) {
+			return aggregateSignal.size();
+		}
+		else {
+			return 0;
+		}
 	}
 	
 	/**
@@ -455,6 +476,30 @@ public class MultivariateSeries {
 	public MDFAFactory getMDFAFactory() {
 		
 		return this.anySolver.getMDFAFactory();
+	}
+
+
+	public String getName() {
+		
+		return anySeries.get(0).getName();
+	}
+
+
+	/**
+	 * 
+	 * Adjusts the fractional difference to the 
+	 * all of the signal series in the multivariate 
+	 * time series
+	 * 
+	 * @param d The new fractional difference exponent
+	 */
+	public void adjustFractionalDifferenceData(double d) {
+	
+		for(int i = 0; i < anySeries.size(); i++) {	
+			if(anySeries.get(i).getSeriesType() == SeriesType.SIGNAL) {
+				((SignalSeries) anySeries.get(i)).getTargetSeries().adjustFractionalDifferenceData(d);		
+			}
+		}
 	}
 	
     

@@ -182,9 +182,8 @@ public class Regularization {
 	
 	private void computeRegularizationMatrices() {
 		
-		
+		double decay_length   = Math.tan(Math.min(anyMDFA.getDecayStart(),0.999999)*Math.PI/2.0);
 		double cross_cor      = 100*Math.tan(Math.min(anyMDFA.getCrossCorr(),0.999999)*Math.PI/2.0);
-		double decay_length   = 100*Math.tan(Math.min(anyMDFA.getDecayStart(),0.999999)*Math.PI/2.0);
 		double decay_strength = 100*Math.tan(Math.min(anyMDFA.getDecayStrength(),0.999999)*Math.PI/2.0);
 		double smooth         = 100*Math.tan(Math.min(anyMDFA.getSmooth(),0.999999)*Math.PI/2.0);
 		

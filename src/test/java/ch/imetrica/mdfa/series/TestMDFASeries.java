@@ -79,13 +79,13 @@ public class TestMDFASeries {
 		
 			SignalSeries signal = new SignalSeries(coeffs, target);
 			
-			assertEquals( .2, signal.getSignalValue(0), .0001);
-			assertEquals( .6, signal.getSignalValue(1), .0001);
-			assertEquals( .7, signal.getSignalValue(2), .0001);
-			assertEquals(1.2, signal.getSignalValue(3), .0001);
+			assertEquals( .0, signal.getSignalValue(0), .0001);
+			assertEquals( .2, signal.getSignalValue(1), .0001);
+			assertEquals( .6, signal.getSignalValue(2), .0001);
+			assertEquals( .7, signal.getSignalValue(3), .0001);
 			assertEquals(1.2, signal.getSignalValue(signal.size()-1), .0001);
 			
-			assertEquals("04.03.2018", signal.getSignalDate(0));
+			assertEquals("03.03.2018", signal.getSignalDate(0));
 			assertEquals("14.03.2018", signal.getSignalDate(signal.size()-1));
 		
 		
@@ -103,13 +103,13 @@ public class TestMDFASeries {
 		
 			SignalSeries signal = new SignalSeries(coeffs, targetDiff);
 			
-			assertEquals( .2, signal.getSignalValue(0), eps);
-			assertEquals( .6, signal.getSignalValue(1), eps);
-			assertEquals( .7, signal.getSignalValue(2), eps);
-			assertEquals(1.2, signal.getSignalValue(3), eps);
+			assertEquals( .0, signal.getSignalValue(0), eps);
+			assertEquals( .2, signal.getSignalValue(1), eps);
+			assertEquals( .6, signal.getSignalValue(2), eps);
+			assertEquals( .7, signal.getSignalValue(3), eps);
 			assertEquals(1.2, signal.getSignalValue(signal.size()-1), eps);
 			
-			assertEquals("04.03.2018", signal.getSignalDate(0));
+			assertEquals("03.03.2018", signal.getSignalDate(0));
 			assertEquals("14.03.2018", signal.getSignalDate(signal.size()-1));
 		
 		
@@ -142,8 +142,8 @@ public class TestMDFASeries {
 			DateTime dt = signal.getSignalDateTime(1);
 			
 			assertEquals(23, dt.dayOfMonth().get());
-			assertEquals(3, dt.hourOfDay().get());
-			assertEquals(0, dt.minuteOfHour().get());
+			assertEquals(2, dt.hourOfDay().get());
+			assertEquals(30, dt.minuteOfHour().get());
 		
 		
 		} catch (Exception e) {
@@ -184,13 +184,13 @@ public class TestMDFASeries {
 			
 			assertTrue(signal.isPrefiltered());
 			
-			assertEquals( .2, signal.getSignalValue(0), .0001);
-			assertEquals( .6, signal.getSignalValue(1), .0001);
-			assertEquals( .7, signal.getSignalValue(2), .0001);
-			assertEquals(1.2, signal.getSignalValue(3), .0001);
+			assertEquals( .0, signal.getSignalValue(0), .0001);
+			assertEquals( .2, signal.getSignalValue(1), .0001);
+			assertEquals( .6, signal.getSignalValue(2), .0001);
+			assertEquals( .7, signal.getSignalValue(3), .0001);
 			assertEquals(1.2, signal.getSignalValue(signal.size()-1), .0001);
 			
-			assertEquals("04.03.2018", signal.getSignalDate(0));
+			assertEquals("03.03.2018", signal.getSignalDate(0));
 			assertEquals("14.03.2018", signal.getSignalDate(signal.size()-1));
 		
 		
@@ -208,13 +208,13 @@ public class TestMDFASeries {
 		
 			SignalSeries signal = new SignalSeries(coeffs, targetDiff);
 			
-			assertEquals( .2, signal.getSignalValue(0), eps);
-			assertEquals( .6, signal.getSignalValue(1), eps);
-			assertEquals( .7, signal.getSignalValue(2), eps);
-			assertEquals(1.2, signal.getSignalValue(3), eps);
+			assertEquals( .0, signal.getSignalValue(0), eps);
+			assertEquals( .2, signal.getSignalValue(1), eps);
+			assertEquals( .6, signal.getSignalValue(2), eps);
+			assertEquals( .7, signal.getSignalValue(3), eps);
 			assertEquals(1.2, signal.getSignalValue(signal.size()-1), eps);
 			
-			assertEquals("04.03.2018", signal.getSignalDate(0));
+			assertEquals("03.03.2018", signal.getSignalDate(0));
 			assertEquals("14.03.2018", signal.getSignalDate(signal.size()-1));
 		
 		

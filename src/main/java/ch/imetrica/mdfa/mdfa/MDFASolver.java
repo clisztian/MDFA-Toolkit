@@ -76,13 +76,14 @@ public class MDFASolver {
 		Regularization anyReg = anyMDFAFactory.getRegularization();
 		Customization anyCustomization = anyMDFAFactory.getCustomization();
 		
+
 		
 		MdfaMatrix des = anyReg.getQSmooth().mdfaMatrixMultTransB(anyReg.getDesignMatrix());
 		MdfaMatrix reg_mat = anyReg.getDesignMatrix().mdfaMatrixMult(des);
 		MdfaMatrix temp = anyReg.getQSmooth().mdfaMatrixMult(anyReg.getWeight());
 		MdfaMatrix reg_xtxy = anyReg.getDesignMatrix().mdfaMatrixMult(temp);
 		
-
+		
 		if(anyReg.getQSmooth().mdfaMatrixGet(0, 0) != 0.0) {
 		     
 	      double distangle = anyReg.getQSmooth().meanDiag(false)/reg_mat.meanDiag(false);
@@ -128,8 +129,7 @@ public class MDFASolver {
 			XtX.mdfaMatrixAdd(hXtX);
 		}
         
-        
-        
+            
         reg_mat.mdfaMatrixScale(dev);
         XtX.mdfaMatrixAdd(reg_mat);
      

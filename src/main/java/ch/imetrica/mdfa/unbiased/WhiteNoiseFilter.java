@@ -11,7 +11,7 @@ public class WhiteNoiseFilter {
 	 * 
 	 */
 	
-	
+	double bandpassCutoff = 0;
 	double freqCutoff; /*frequency cutoff of the filter */
 	double lag;        /*lag of the filter for smoothing/forecasting */
 	int L_filter;      /*length of the filter */
@@ -39,6 +39,16 @@ public class WhiteNoiseFilter {
 		
 		computeFilterCoefficients();
 	
+	}
+	
+    public WhiteNoiseFilter(double bandpass, double freqCutoff, double lag, int L_filter) {
+		
+    	this.bandpassCutoff = bandpass;
+		this.freqCutoff = freqCutoff;
+		this.lag = lag;
+		this.L_filter = L_filter;
+		
+		computeFilterCoefficients();
 	}
 	
 	private void computeFilterCoefficients() {

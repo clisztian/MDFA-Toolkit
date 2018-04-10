@@ -15,6 +15,7 @@ import ch.imetrica.mdfa.mdfa.MDFASolver;
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
 import ch.imetrica.mdfa.series.MdfaSeries.SeriesType;
 import ch.imetrica.mdfa.spectraldensity.SpectralBase;
+import ch.imetrica.mdfa.unbiased.WhiteNoiseFilter;
 
 /**
  * 
@@ -317,7 +318,17 @@ public class MultivariateSignalSeries implements MdfaSeries {
 	 */
 	public void setWhiteNoisePrefilters(int L) {
 		
-		
+		preFilterCoeffs.clear();		
+		if(anySolvers.length > 0) {
+			
+			for(int i = 0; i < anySolvers.length; i++) {
+				
+				double[] whiteFilter = (new WhiteNoiseFilter(anySolvers[i].getMDFAFactory().getLowPassCutoff(), 0, L))
+						                  .getFilterCoefficients();
+			   
+				preFilterCoeffs.add(whiteFilter);
+			}		
+		}		
 	}
 
 	

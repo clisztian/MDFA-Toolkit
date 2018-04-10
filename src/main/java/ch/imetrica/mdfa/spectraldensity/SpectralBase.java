@@ -14,9 +14,11 @@ import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
 import ch.imetrica.mdfa.series.MdfaSeries;
 import ch.imetrica.mdfa.series.MultivariateSeries;
+import ch.imetrica.mdfa.series.MultivariateSignalSeries;
 import ch.imetrica.mdfa.series.SignalSeries;
 import ch.imetrica.mdfa.series.TargetSeries;
 import ch.imetrica.mdfa.series.TimeSeries;
+import ch.imetrica.mdfa.series.VectorSignalSeries;
 import ch.imetrica.mdfa.series.MdfaSeries.SeriesType;
 
 
@@ -104,7 +106,7 @@ public class SpectralBase {
 		 }
 	
 		 if(dfts.size() == myTarget) {			
-			 targetDFTs = computeDFT(anySeries, true);
+			 targetDFTs = computeDFT(anySeries, true);			 
 		 }
 		 
 		 /* Set the target DFTs to this DFT */
@@ -126,6 +128,8 @@ public class SpectralBase {
 		final double M_PI = Math.PI;
 		double mean = 0;
 		double val;
+		double normalizer = Math.sqrt(M_PI*in_sample_size);
+		
 		
 		Complex[] prdx = new Complex[K1];
 		int start = anySeries.size() - in_sample_size;
@@ -138,7 +142,7 @@ public class SpectralBase {
 				mean += ((SignalSeries)anySeries).getPrefilteredValue(i);
 			
 		}
-		mean = mean/in_sample_size;
+		mean = mean/normalizer;
 		 		 
 		prdx[0] = new Complex(mean,0);
 		Complex ab = new Complex(0,0);
@@ -149,14 +153,14 @@ public class SpectralBase {
 			 for(int i = start; i < anySeries.size(); i++) {
 				 
 				 if(target) 
-					 val = anySeries.getTargetValue(i) - mean;				 
+					 val = anySeries.getTargetValue(i);				 
 				 else
-					 val = ((SignalSeries)anySeries).getPrefilteredValue(i) - mean;
+					 val = ((SignalSeries)anySeries).getPrefilteredValue(i);
 				 
 				 Complex z = (new Complex(0, M_PI*(i - start + 1.0)*j/K)).exp();				 
 				 ab = ab.add(z.multiply(val)); 
 			 }
-			 prdx[j] = ab.divide(Math.sqrt(M_PI*in_sample_size));			 
+			 prdx[j] = ab.divide(normalizer);			 
 		}
 		return prdx;		
 	}
@@ -185,6 +189,42 @@ public class SpectralBase {
 		}
 	}
 	
+	/**
+	 * 
+	 * Extracts any signal series that requires filter coefficients and 
+	 * adds them to the list of series to be included in the multivariate
+	 * filtering system
+	 *  
+	 *  
+	 * @param signals
+	 *     A multivariate series with at least one signal series with target
+	 *     to be used for the computing the signal
+	 * @throws Exception 
+	 */
+	public void addSignalSeries(ArrayList<SignalSeries> signals) throws Exception {
+		
+		int M = signals.size();
+		for(int i = 0; i < M; i++) {
+			addSeries(signals.get(i));
+		}
+	}
+	
+	
+	public void addVectorSeries(ArrayList<VectorSignalSeries> signals) throws Exception {
+		
+		int M = signals.size();
+		for(int i = 0; i < M; i++) {
+			addSeries(signals.get(i));
+		}
+	}
+	
+	public void addMdfaSeries(ArrayList<MdfaSeries> signals) throws Exception {
+		
+		int M = signals.size();
+		for(int i = 0; i < M; i++) {
+			addSeries(signals.get(i));
+		}
+	}	
 
 	/**
 	* Returns the DFT information

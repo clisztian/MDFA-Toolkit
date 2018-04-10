@@ -81,7 +81,7 @@ public class TestMultivariateSeries {
 		multi.addSeries(qqq);
 		multi.addSeries(spy);
 		
-		assertEquals(3, multi.getNumberSignal());
+		assertEquals(3, multi.getNumberOfSignals());
 
 		TimeSeries<Double> eemSeries = CsvFeed.getChunkOfData(0, 205, "data/EEM.IB.dat", "dateTime", "close");	
 		SignalSeries eem = new SignalSeries(new TargetSeries(eemSeries, .4, true), "yyyy-MM-dd");

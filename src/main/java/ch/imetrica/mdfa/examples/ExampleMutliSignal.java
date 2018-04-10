@@ -37,7 +37,7 @@ public class ExampleMutliSignal {
                 .setSeriesLength(400);
 		
 		
-		TimeSeries<Double> appleSeries = CsvFeed.getChunkOfData(0, 600, "data/AAPL.IB.dat", "dateTime", "close");	
+		TimeSeries<Double> appleSeries = CsvFeed.getChunkOfData(0, 600, "/home/lisztian/mdfaData/AAPL.daily.csv", "Index", "Open");	
 		MultivariateSignalSeries signal = new MultivariateSignalSeries(new TargetSeries(appleSeries, .6, true), 
 				anyMDFAs, "yyyy-MM-dd")
 				.computeFilterCoefficients()
