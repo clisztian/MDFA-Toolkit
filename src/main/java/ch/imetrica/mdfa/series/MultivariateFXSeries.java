@@ -39,7 +39,16 @@ public class MultivariateFXSeries {
 	private DateTimeFormatter formatter;
 	
 	
-	
+	/**
+	 * A MultivariateFX series is instantiated with an array of 
+	 * MDFABase objects, each object defining a real-time signal 
+	 * specification. Each MDFABase object will instantiate a MDFASolver.
+	 * 
+	 * A format for the DateTime is also required
+	 * 
+	 * @param anyMDFAs
+	 * @param anyformat
+	 */
 	public MultivariateFXSeries(MDFABase[] anyMDFAs, String anyformat) {
 		
 		this.formatter = DateTimeFormat.forPattern(anyformat);
@@ -53,20 +62,46 @@ public class MultivariateFXSeries {
 		fxSignals = new TimeSeries<double[]>();
 	}
 	
+	
+	/**
+	 * A MultivariateFX series is instantiated with an ArrayList of 
+	 * MDFABase objects, each object defining a real-time signal 
+	 * specification. Each MDFABase object will instantiate a MDFASolver.
+	 * 
+	 * A format for the DateTime is also required
+	 * 
+	 * @param anyMDFAs
+	 * @param anyformat
+	 */
+	public MultivariateFXSeries(ArrayList<MDFABase> anyMDFAs, String anyformat) {
+		
+		this.formatter = DateTimeFormat.forPattern(anyformat);
+		
+		anySolvers = new ArrayList<MDFASolver>();
+		for(int i = 0; i < anyMDFAs.size(); i++) {
+			anySolvers.add(new MDFASolver(new MDFAFactory(anyMDFAs.get(i))));
+		}	
+		
+		anySignals = new ArrayList<VectorSignalSeries>();
+		fxSignals = new TimeSeries<double[]>();
+	}
+	
+	
 	/**
 	 * 
 	 * Adds a new multivariate series value for the given date. 
 	 * The new multivariate signal will be computed automatically 
 	 * at the given date. This assumes that all coefficients are
-	 * defined for each series
+	 * defined for each series. If they are not defined yet, a zero
+	 * vector will be added to the signal at the observation time
 	 * 
 	 * 
 	 * @param val array of newest observations at given date
-	 * @param date Most curent date
+	 * @param date Current date
 	 * @throws Exception if the multivariate size of the new observation
 	 * 		   does not equal the number of series
 	 */
-    public void addValue(double[] val, String date) throws Exception {
+    public void addValue(String date, double[] val) throws Exception {
         
     	if(val.length != anySignals.size()) {
     		throw new Exception("Sizes of array and number of time series don't match");
@@ -90,15 +125,16 @@ public class MultivariateFXSeries {
 	 * Adds a new multivariate series value for the given date. 
 	 * The new multivariate signal will be computed automatically 
 	 * at the given date. This assumes that all coefficients are
-	 * defined for each series
+	 * defined for each series. If they are not defined yet, a zero
+	 * vector will be added to the signal at the observation time
 	 * 
 	 * 
 	 * @param val arrayList of newest observations at given date
-	 * @param date Most current date
+	 * @param date Current date
 	 * @throws Exception if the multivariate size of the new observation
 	 * 		   does not equal the number of series
 	 */
-    public void addValue(ArrayList<Double> val, String date) throws Exception {
+    public void addValue(String date, ArrayList<Double> val) throws Exception {
         
     	if(val.size() != anySignals.size()) {
     		throw new Exception("Sizes of array and number of time series don't match");
@@ -120,18 +156,18 @@ public class MultivariateFXSeries {
 	
 	/**
 	 * Adds a new series to the collection of the multivariate 
-	 * time series stream. Will be added if the two conditions hold:
+	 * time series stream. Will be added if:
 	 * 
-	 * - Has at least MDFABase.N observations
 	 * - The latest date corresponds to the latest date of all 
 	 *   series in the collection
 	 * 
 	 * @param series
-	 *        Nonempty time series to be added for use as an explanatory 
+	 *        A time series to be added for use as an explanatory 
 	 *        series that is filtered or a technical for trading
+	 * @throws Exception 
 	 *        
 	 */
-	public boolean addSeries(TargetSeries series) {
+	public MultivariateFXSeries addSeries(TargetSeries series) throws Exception {
 		
 		boolean success = true;
 		if(anySignals.size() > 0 && series.size() > 0) {
@@ -141,7 +177,8 @@ public class MultivariateFXSeries {
 			for(int i = 0; i < anySignals.size(); i++) {
 				
 				if(!datetime.equals(anySignals.get(i).getLatestDate())) {
-					success = false;
+					throw new Exception("Dates do not match of the signals: " + 
+				         datetime + " is not " + anySignals.get(i).getLatestDate());
 				}
 			}		
 		}
@@ -150,7 +187,7 @@ public class MultivariateFXSeries {
 			VectorSignalSeries vecSeries = new VectorSignalSeries(series);
 			anySignals.add(vecSeries);
 		}
-		return success;
+		return this;
 	}
 	
 	
@@ -334,6 +371,10 @@ public class MultivariateFXSeries {
 		return anySolvers.size();
 	}
 
+	public int getNumberSeries() {
+		return anySignals.size();
+	}
+	
 	public int size() {	
 		return fxSignals.size();
 	}
