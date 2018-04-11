@@ -16,6 +16,7 @@ public class WhiteNoiseFilter {
 	double lag;        /*lag of the filter for smoothing/forecasting */
 	int L_filter;      /*length of the filter */
 	double[] wn_filter; /*filter coefficients */
+	private double[] Gamma;
 	
 	/**
      * Sets a TimeSeries object to this MdfaSeries.
@@ -51,6 +52,15 @@ public class WhiteNoiseFilter {
 		computeFilterCoefficients();
 	}
 	
+    public WhiteNoiseFilter(double[] Gamma, double lag, int L_filter) {
+		
+        this.Gamma = Gamma; 
+		this.lag = lag;
+		this.L_filter = L_filter;
+		
+		computeLagFilterCoefficients();
+	}
+    
 	private void computeFilterCoefficients() {
 		
 
@@ -66,6 +76,8 @@ public class WhiteNoiseFilter {
 	    	sum = sum + wn_filter[i];
 	    }
 	    
+	    
+	    
 	}
 	
 	
@@ -80,29 +92,28 @@ public class WhiteNoiseFilter {
 	
 	
 	
-//	private void computeLagFilterCoefficients() {
-//		
-//		for(int k=0;k < L_filter; k++) {
-//			
-//			double sum=0.0; 
-//			double sumi = 0.0;
-//			
-//			for(int n=0;n<=K;n++) {
-//				sum = sum + Gamma[n]*Math.cos(-lag*Math.PI*n/K)*Math.cos(Math.PI*n*k/K);
-//				sumi = sumi + Gamma[n]*Math.sin(-lag*Math.PI*n/K)*Math.sin(Math.PI*n*k/K);
-//			}     
-//			if(k==0) {h0b0[0] = sum*sum;}
-//			else
-//			{h0b0[k] = 2.0*sum;} //(sum*sum + sumi*sumi);} 
-//			sum2 = sum2 + h0b0[k];
-//		}
-//		for(i=0;i<L;i++)
-//		{h0b0[i] = h0b0[i]/(sum2-h0b0[0]/2.0);}    
-//     
-//		for(i=0;i<L;i++)
-//		{
-//			System.out.println("0.0 " + h0b0[i] + " 0.0 0.0");    
-//		}
-//	}
+	private void computeLagFilterCoefficients() {
+		
+		double sum2=0;
+		int K = Gamma.length;
+		
+		for(int l=0;l < L_filter; l++) {
+			
+			double sum = 0.0; 
+			double sumi = 0.0;
+			
+			for(int n=0; n <= K; n++) {
+				sum = sum + Gamma[n]*Math.cos(-lag*Math.PI*n/K)*Math.cos(Math.PI*n*l/K);
+				sumi = sumi + Gamma[n]*Math.sin(-lag*Math.PI*n/K)*Math.sin(Math.PI*n*l/K);
+			}     
+			if(l==0) {wn_filter[0] = sum*sum;}
+			else
+			{wn_filter[l] = sum*sum + sumi*sumi;} //(sum*sum + sumi*sumi);} 
+			sum2 = sum2 + wn_filter[l];
+		}
+		for(int l=0; l < L_filter; l++) {
+			wn_filter[l] = wn_filter[l]/(sum2-wn_filter[0]/2.0);
+		}    
+	}
 	
 }

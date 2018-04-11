@@ -18,9 +18,7 @@ public class ExampleMultivariateFXSignal {
 		dataFiles[2] = "/home/lisztian/mdfaData/SPY.daily.csv";
 		
 		CsvFeed marketFeed = new CsvFeed(dataFiles, "Index", "Open");
-		
-		
-		
+				
 		/* Create some MDFA sigEx processes */
 		MDFABase[] anyMDFAs = new MDFABase[3];
 		

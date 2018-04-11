@@ -244,8 +244,7 @@ public class VectorSignalSeries implements MdfaSeries {
 
 	@Override
 	public boolean isPrefiltered() {
-		// TODO Auto-generated method stub
-		return false;
+		return (preFilterCoeffs.size() > 0);
 	}
 
 	public void clearFilters() {

@@ -201,34 +201,47 @@ public class MultivariateFXSeries {
 	 * 
 	 * @throws Exception
 	 */
+//	public void computeAllFilterCoefficients() throws Exception {
+//		
+//		int sigIndex = 0;
+//		for(VectorSignalSeries series : anySignals) {
+//			series.clearFilters();
+//		}
+//
+//		
+//		SpectralBase base = new SpectralBase(anySolvers.get(0).getMDFAFactory().getSeriesLength());
+//		base.addVectorSeries(anySignals);
+//		
+//		for(MDFASolver anySolver : anySolvers) {
+//			
+//			anySolver.getMDFAFactory().setNumberOfSeries(anySignals.size());
+//			anySolver.updateSpectralBase(base);
+//			
+//			int L = anySolver.getMDFAFactory().getFilterLength();
+//			MdfaMatrix bcoeffs = anySolver.solver();
+//			
+//			for(int i = 0; i < anySignals.size(); i++) {
+//				
+//				double[] sig_coeffs = bcoeffs.getSubsetColumn(0, i*L, i*L + L);
+//				anySignals.get(i).setMDFAFilterCoefficients(sigIndex, sig_coeffs);
+//			}
+//			sigIndex++;
+//		}
+//		computeAggregateSignal();
+//	}
+	
 	public void computeAllFilterCoefficients() throws Exception {
 		
 		int sigIndex = 0;
 		for(VectorSignalSeries series : anySignals) {
 			series.clearFilters();
 		}
-
 		
-		SpectralBase base = new SpectralBase(anySolvers.get(0).getMDFAFactory().getSeriesLength());
-		base.addVectorSeries(anySignals);
-		
-		for(MDFASolver anySolver : anySolvers) {
-			
-			anySolver.getMDFAFactory().setNumberOfSeries(anySignals.size());
-			anySolver.updateSpectralBase(base);
-			
-			int L = anySolver.getMDFAFactory().getFilterLength();
-			MdfaMatrix bcoeffs = anySolver.solver();
-			
-			for(int i = 0; i < anySignals.size(); i++) {
-				
-				double[] sig_coeffs = bcoeffs.getSubsetColumn(0, i*L, i*L + L);
-				anySignals.get(i).setMDFAFilterCoefficients(sigIndex, sig_coeffs);
-			}
-			sigIndex++;
+		for(int n = 0; n < anySolvers.size(); n++) {
+			computeFilterCoefficients(n);
 		}
 		computeAggregateSignal();
-	}
+	}	
 	
 	
 	/**
@@ -263,11 +276,14 @@ public class MultivariateFXSeries {
 				anySignals.get(i).setMDFAFilterCoefficients(n, sig_coeffs);
 			}	
 		}
-		computeAggregateSignal();
+		else {
+			throw new Exception("The Solver at index " + n + " is not defined. Only " + 
+					anySolvers.size() + " are currently defined");
+		}	
 	}
 	
 	
-	private void computeAggregateSignal() throws Exception {
+	public void computeAggregateSignal() throws Exception {
 		
 		fxSignals.clear();
 		int N = anySignals.get(0).size();
@@ -282,7 +298,6 @@ public class MultivariateFXSeries {
 				if(current.equals(anySignals.get(m).getSignalDate(i))) {					
 					
 					val = MdfaUtil.plus(val, anySignals.get(m).getSignalValue(i));
-				
 				}
 				else {
 					  throw new Exception("Dates do not match of the signals: " + current + " is not " + anySignals.get(m).getSignalDate(i));
@@ -291,8 +306,6 @@ public class MultivariateFXSeries {
 			fxSignals.add(new TimeSeriesEntry<double[]>(current, val));	
 		}
 	}
-	
-	
 	
 	/**
 	 * 
@@ -312,8 +325,19 @@ public class MultivariateFXSeries {
 	}
 	
 	/**
-	 * Creates unbiased white noise filters on the 
-	 * @param L
+	 * Creates unbiased white noise filters for 
+	 * each series and each signal. The target 
+	 * information from the MDFAsolvers will be used
+	 * to compute the white noise filters. The resulting
+	 * signals when applied will be the optimal filters
+	 * if assuming future value returns are white noise.
+	 * 
+	 * After prefiltering, the MDFA routine will then 
+	 * update these prefilters to create a more timely 
+	 * MDFA signal. A great way to reduce number of effective 
+	 * degrees of freedom from the hyperparameters
+	 * 
+	 * @param L Length of prefilter. Longer the better
 	 */
 	public void setWhiteNoisePrefilters(int L) {
 					
@@ -330,7 +354,6 @@ public class MultivariateFXSeries {
 		}		
 	}
 	
-	
 	/**
 	 * Gets this joda DateTimeFormatter
 	 * @return
@@ -340,15 +363,20 @@ public class MultivariateFXSeries {
 		return formatter;
 	}
 
-	public void chopFirstObservations(int obs) {
+	/**
+	 * Deletes the first n number of observations in
+	 * all the time series associated with this multivariateFX signal
+	 * @param n Number of observations to delete
+	 */
+	public void chopFirstObservations(int n) {
 		
-		int chopped = Math.min(obs, fxSignals.size());
+		int chopped = Math.min(n, fxSignals.size());
 		for(int i = 0; i < chopped; i++) {
 			fxSignals.remove(0);
 		}	
 		
 		for(VectorSignalSeries signal : anySignals) {
-			signal.chopFirstObservations(obs);
+			signal.chopFirstObservations(n);
 		}
 	}
 	
@@ -367,14 +395,28 @@ public class MultivariateFXSeries {
 		return formatter;
 	}
 
+	/**
+	 * The number of total signals defined 
+	 * @return
+	 */
 	public int getNumberSignals() {
 		return anySolvers.size();
 	}
 
+	/**
+	 * The number of time series in the multivariate
+	 * time series used for signal estimation
+	 * @return Number of series
+	 */
 	public int getNumberSeries() {
 		return anySignals.size();
 	}
 	
+	/**
+	 * The number of observations in the time series for
+	 * the output signal
+	 * @return int Number of time series observations
+	 */
 	public int size() {	
 		return fxSignals.size();
 	}
@@ -384,13 +426,54 @@ public class MultivariateFXSeries {
 		
 	}
 
+	/**
+	 * Get the target value for the target series for 
+	 * this multivariate signal extraction,  
+	 * which is the first VectorSeries in the arrayList
+	 * @param i index ith date
+	 * @return TargetValue at the ith date
+	 */
 	public double getTargetValue(int i) {
 		return anySignals.get(0).getTargetValue(i);
 	}
 
+	/**
+	 * 
+	 * Get the signal value at index i as a double array
+	 * 
+	 * @param i
+	 * @return A double array
+	 */
 	public double[] getSignalValue(int i) {
 		return fxSignals.get(i).getValue();
 	}
+
+	/**
+	 * Get the latest TimeSeriesEntry containing multivariate
+	 * signal and timestamp
+	 * @return TimeSeriesEntry<double[]>
+	 */
+	public TimeSeriesEntry<double[]> getLatestSignalEntry() {
+		return fxSignals.last();
+	}
+
+	/**
+	 * 
+	 * Adds a new MDFA signal extraction definition to the 
+	 * list of outputed signals. All the filter coefficients 
+	 * for all the other signals will be recomputed. 
+	 * 
+	 * @param newbase An MDFABase object defining the new MDFA signal 
+	 * 
+	 * @throws Exception
+	 */
+	public void addMDFABase(MDFABase newbase) throws Exception {		
+		
+		anySolvers.add(new MDFASolver(new MDFAFactory(newbase)));
+		computeAllFilterCoefficients();
+	}
+
+
 	
 	
 }
