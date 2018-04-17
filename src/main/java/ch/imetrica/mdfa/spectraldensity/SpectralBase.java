@@ -50,6 +50,7 @@ public class SpectralBase {
 	private int in_sample_size;
 	private int myTarget;
 	private Complex[] targetDFTs;
+	private int signalNumber = 0;
 	
 	/**
      * Sets the in_sample_size for the SpectralDensity estimation
@@ -121,13 +122,13 @@ public class SpectralBase {
 	}
 	 
 	 
-	private Complex[] computeDFT(MdfaSeries anySeries, boolean target) {
+	private Complex[] computeDFT(MdfaSeries anySeries, boolean target) throws Exception {
 		
 		int K = (int)in_sample_size/2;
 		int K1 = K+1;
 		final double M_PI = Math.PI;
 		double mean = 0;
-		double val;
+		double val = 0;
 		double normalizer = Math.sqrt(M_PI*in_sample_size);
 		
 		
@@ -140,6 +141,8 @@ public class SpectralBase {
 				mean += anySeries.getTargetValue(i);
 			else if(anySeries.getSeriesType() == SeriesType.SIGNAL)
 				mean += ((SignalSeries)anySeries).getPrefilteredValue(i);
+			else if(anySeries.getSeriesType() == SeriesType.MULTISIGNAL)
+				mean += ((VectorSignalSeries)anySeries).getPrefilteredValue(signalNumber,i);
 			
 		}
 		mean = mean/normalizer;
@@ -154,9 +157,11 @@ public class SpectralBase {
 				 
 				 if(target) 
 					 val = anySeries.getTargetValue(i);				 
-				 else
+				 else if(anySeries.getSeriesType() == SeriesType.SIGNAL)
 					 val = ((SignalSeries)anySeries).getPrefilteredValue(i);
-				 
+				 else if(anySeries.getSeriesType() == SeriesType.MULTISIGNAL) {
+						val = ((VectorSignalSeries)anySeries).getPrefilteredValue(signalNumber,i);
+				 }
 				 Complex z = (new Complex(0, M_PI*(i - start + 1.0)*j/K)).exp();				 
 				 ab = ab.add(z.multiply(val)); 
 			 }
@@ -210,11 +215,13 @@ public class SpectralBase {
 	}
 	
 	
-	public void addVectorSeries(ArrayList<VectorSignalSeries> signals) throws Exception {
+	public void addVectorSeries(ArrayList<VectorSignalSeries> signals, int whichSig) throws Exception {
+			
+		this.signalNumber = whichSig;
 		
 		int M = signals.size();
-		for(int i = 0; i < M; i++) {
-			addSeries(signals.get(i));
+		for(int i = 0; i < M; i++) {	
+			  addSeries(signals.get(i));	
 		}
 	}
 	
@@ -252,12 +259,10 @@ public class SpectralBase {
 	*      Sets the target index. By default the target
 	*      index is 0.     
 	*/
-	public void setTargetIndex(int target) {
+	public SpectralBase setTargetIndex(int target) {
 		
-		if(target < dfts.size()) {
-			this.myTarget = target;
-			targetDFTs = dfts.get(target);
-		}	
+		this.myTarget = target;
+		return this;
 	}
 
 	/**
@@ -302,8 +307,7 @@ public class SpectralBase {
 		dfts.clear();
 	}
 	
-	
-	
+
 	public static void plotPeriodogram(double[] prdx) {
 			
 			final String title = "EURUSD frac diff";

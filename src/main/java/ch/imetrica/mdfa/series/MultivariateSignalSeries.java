@@ -13,9 +13,9 @@ import ch.imetrica.mdfa.mdfa.MDFABase;
 import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
+import ch.imetrica.mdfa.prefilter.WhiteNoiseFilter;
 import ch.imetrica.mdfa.series.MdfaSeries.SeriesType;
 import ch.imetrica.mdfa.spectraldensity.SpectralBase;
-import ch.imetrica.mdfa.unbiased.WhiteNoiseFilter;
 
 /**
  * 

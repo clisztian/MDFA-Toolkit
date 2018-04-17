@@ -1,6 +1,8 @@
 package ch.imetrica.mdfa.series;
 
+import java.nio.channels.SelectableChannel;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import org.jfree.ui.RefineryUtilities;
 import org.joda.time.format.DateTimeFormat;
@@ -11,8 +13,9 @@ import ch.imetrica.mdfa.mdfa.MDFABase;
 import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
+import ch.imetrica.mdfa.prefilter.WhiteNoiseFilter;
+import ch.imetrica.mdfa.series.MdfaSeries.SeriesType;
 import ch.imetrica.mdfa.spectraldensity.SpectralBase;
-import ch.imetrica.mdfa.unbiased.WhiteNoiseFilter;
 import ch.imetrica.mdfa.util.MdfaUtil;
 
 /**
@@ -37,7 +40,8 @@ public class MultivariateFXSeries {
 	private ArrayList<MDFASolver> anySolvers;   /* All the solvers */		
 	private TimeSeries<double[]> fxSignals;     /* Aggregate Signals */	
 	private DateTimeFormatter formatter;
-	
+	private int targetSeriesIndex = 0;         
+	private boolean prefilterAll = false;
 	
 	/**
 	 * A MultivariateFX series is instantiated with an array of 
@@ -201,42 +205,13 @@ public class MultivariateFXSeries {
 	 * 
 	 * @throws Exception
 	 */
-//	public void computeAllFilterCoefficients() throws Exception {
-//		
-//		int sigIndex = 0;
-//		for(VectorSignalSeries series : anySignals) {
-//			series.clearFilters();
-//		}
-//
-//		
-//		SpectralBase base = new SpectralBase(anySolvers.get(0).getMDFAFactory().getSeriesLength());
-//		base.addVectorSeries(anySignals);
-//		
-//		for(MDFASolver anySolver : anySolvers) {
-//			
-//			anySolver.getMDFAFactory().setNumberOfSeries(anySignals.size());
-//			anySolver.updateSpectralBase(base);
-//			
-//			int L = anySolver.getMDFAFactory().getFilterLength();
-//			MdfaMatrix bcoeffs = anySolver.solver();
-//			
-//			for(int i = 0; i < anySignals.size(); i++) {
-//				
-//				double[] sig_coeffs = bcoeffs.getSubsetColumn(0, i*L, i*L + L);
-//				anySignals.get(i).setMDFAFilterCoefficients(sigIndex, sig_coeffs);
-//			}
-//			sigIndex++;
-//		}
-//		computeAggregateSignal();
-//	}
 	
 	public void computeAllFilterCoefficients() throws Exception {
 		
-		int sigIndex = 0;
 		for(VectorSignalSeries series : anySignals) {
 			series.clearFilters();
 		}
-		
+				
 		for(int n = 0; n < anySolvers.size(); n++) {
 			computeFilterCoefficients(n);
 		}
@@ -259,12 +234,17 @@ public class MultivariateFXSeries {
 		
 		if(n < anySolvers.size()) {
 			
+			if(prefilterAll) {
+				setWhiteNoisePrefilters(n, 50);
+			}
+			
 			MDFASolver anySolver = anySolvers.get(n);
 			
 			anySolver.getMDFAFactory().setNumberOfSeries(anySignals.size());
 			
-			SpectralBase base = new SpectralBase(anySolver.getMDFAFactory().getSeriesLength());
-			base.addVectorSeries(anySignals);
+			SpectralBase base = new SpectralBase(anySolver.getMDFAFactory().getSeriesLength())
+					                            .setTargetIndex(targetSeriesIndex);
+			base.addVectorSeries(anySignals, n);
 			anySolver.updateSpectralBase(base);
 			
 			int L = anySolver.getMDFAFactory().getFilterLength();
@@ -342,17 +322,42 @@ public class MultivariateFXSeries {
 	public void setWhiteNoisePrefilters(int L) {
 					
 		if(anySolvers.size() > 0) {			
-			for(int m = 0; m < anySignals.size(); m++) {			
-				anySignals.get(m).clearFilters();
+			for(int m = 0; m < anySignals.size(); m++) {
+				
+				anySignals.get(m).clearPreFilters();
 				for(int i = 0; i < anySolvers.size(); i++) {
 
-					double[] whiteFilter = (new WhiteNoiseFilter(anySolvers.get(i).getMDFAFactory().getLowPassCutoff(), 0, L))
-			                  .getFilterCoefficients();
+					double[] whiteFilter = (new WhiteNoiseFilter(anySolvers.get(i).getMDFAFactory().getBandPassCutoff(),
+																 anySolvers.get(i).getMDFAFactory().getLowPassCutoff(), 0, L))
+			                  				.getFilterCoefficients();
 					anySignals.get(m).addPrefilter(whiteFilter);
 				}
 			}		
 		}		
 	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * 
+	 * @param i for the ith signal definition
+	 * @param L number of coefficients
+	 */
+	
+	public void setWhiteNoisePrefilters(int i, int L) {
+		
+		if(anySolvers.size() > 0) {			
+			for(int m = 0; m < anySignals.size(); m++) {
+				
+				double[] whiteFilter = (new WhiteNoiseFilter(anySolvers.get(i).getMDFAFactory().getBandPassCutoff(),
+																 anySolvers.get(i).getMDFAFactory().getLowPassCutoff(), 0, L))
+			                  			.getFilterCoefficients();
+				anySignals.get(m).setPrefilter(i, whiteFilter);
+			}		
+		}		
+	}
+	
 	
 	/**
 	 * Gets this joda DateTimeFormatter
@@ -422,7 +427,7 @@ public class MultivariateFXSeries {
 	}
 
 	public String getTargetDate(int i) {
-		return anySignals.get(0).getTargetDate(i);
+		return anySignals.get(targetSeriesIndex).getTargetDate(i);
 		
 	}
 
@@ -434,7 +439,7 @@ public class MultivariateFXSeries {
 	 * @return TargetValue at the ith date
 	 */
 	public double getTargetValue(int i) {
-		return anySignals.get(0).getTargetValue(i);
+		return anySignals.get(targetSeriesIndex).getTargetValue(i);
 	}
 
 	/**
@@ -448,6 +453,16 @@ public class MultivariateFXSeries {
 		return fxSignals.get(i).getValue();
 	}
 
+	
+	/**
+	 * Get the latest TimeSeriesEntry containing multivariate
+	 * signal and timestamp
+	 * @return TimeSeriesEntry<double[]>
+	 */
+	public TimeSeriesEntry<double[]> getSignal(int i) {
+		return fxSignals.get(i);
+	}
+	
 	/**
 	 * Get the latest TimeSeriesEntry containing multivariate
 	 * signal and timestamp
@@ -470,10 +485,101 @@ public class MultivariateFXSeries {
 	public void addMDFABase(MDFABase newbase) throws Exception {		
 		
 		anySolvers.add(new MDFASolver(new MDFAFactory(newbase)));
+		setWhiteNoisePrefilters(50);
 		computeAllFilterCoefficients();
+	}
+	
+	/**
+	 * 
+	 * Adjusts the fractional difference to the 
+	 * all of the signal series in the multivariate 
+	 * time series
+	 * 
+	 * @param d The new fractional difference exponent
+	 */
+	public void adjustFractionalDifferenceData(double d) {
+	
+		for(int i = 0; i < anySignals.size(); i++) {	
+				anySignals.get(i).getTargetSeries().adjustFractionalDifferenceData(d);			
+		}
+	}
+
+    /**
+     * Set the date format for joda timedate. Typically yyyy-MM-dd
+     * for daily data  or yyyy-MM-dd HH:mm:ss for second data
+     * @param anyformat String of format
+     */
+	public void setDateFormat(String anyformat) {
+		this.formatter = DateTimeFormat.forPattern(anyformat);	
 	}
 
 
+	/**
+	 * Gets a handle on the ith vector series
+	 * @param i
+	 * @return VectorSignalSeris
+	 */
+	public VectorSignalSeries getSeries(int i) {
+		return anySignals.get(i);
+	}
+
+
+	/**
+	 * 
+	 * Returns the name of the target series
+	 * 
+	 * @return Name of target series
+	 */
+	public String getTargetName() {
+		return anySignals.get(targetSeriesIndex).getName();
+	}
 	
+	/**
+	 * Sets the target series in the multivariate
+	 * series collection. The target is the series
+	 * from which the target signal is based
+	 * 
+	 * @param index New index of target
+	 * @throws Exception 
+	 */
+	public void setTargetSeriesIndex(int index) throws Exception {
+		
+		if(index < getNumberSeries()) {
+			this.targetSeriesIndex = index;
+			this.computeAllFilterCoefficients();
+		}		
+	}
+	
+	/**
+	 * Gets the target index
+	 * @return int Target index
+	 */
+	public int getTargetSeriesIndex() {
+		return this.targetSeriesIndex;
+	}
+ 	
+	/**
+	 * 
+	 * Activate prefiltering for each signal
+	 * 
+	 * @param prefilter
+	 */
+	public void prefilterActivate(boolean prefilter) {
+		
+		prefilterAll = prefilter;
+		for(VectorSignalSeries series : anySignals) {
+			series.prefilterActivate(prefilter);
+		}
+	}
+	
+	public boolean isPrefiltered() {
+		
+		for(VectorSignalSeries series : anySignals) {
+			if(!series.isPrefiltered()) {
+				return false;
+			}
+		}
+		return true;
+	}
 	
 }

@@ -1,4 +1,4 @@
-package ch.imetrica.mdfa.unbiased;
+package ch.imetrica.mdfa.prefilter;
 
 public class WhiteNoiseFilter {
 
@@ -67,18 +67,31 @@ public class WhiteNoiseFilter {
 	    double sum;
 	    wn_filter = new double[L_filter]; 
 	    
-	    wn_filter[0] = freqCutoff/Math.PI; 
-	    
-	    sum = wn_filter[0]; 
-	    for(int i = 1; i < L_filter; i++) {
+	    if(bandpassCutoff == 0) {
 	    	
-	    	wn_filter[i] = (1.0/Math.PI)*Math.sin(freqCutoff*i)/i; 
-	    	sum = sum + wn_filter[i];
+		    wn_filter[0] = freqCutoff/Math.PI; 	    
+		    sum = wn_filter[0]; 
+		    for(int i = 1; i < L_filter; i++) {
+		    	
+		    	wn_filter[i] = (1.0/Math.PI)*Math.sin(freqCutoff*i)/i; 
+		    	sum = sum + wn_filter[i];
+		    }
+		    for(int l=0; l < L_filter; l++) {
+				wn_filter[l] = wn_filter[l]/(sum-wn_filter[0]/2.0);
+			}
 	    }
-	    
-	    
-	    
+	    else {
+	    	
+	    	double coeff0 = (freqCutoff - bandpassCutoff)/Math.PI; 
+	    	wn_filter[0] = coeff0;  
+	    	
+		    for(int i=1; i < L_filter; i++) {
+		    	wn_filter[i] = (Math.sin(freqCutoff*i) - Math.sin(bandpassCutoff*i))/(Math.PI*i);
+		    }
+
+	    }	    
 	}
+	
 	
 	
 	/**
@@ -96,24 +109,21 @@ public class WhiteNoiseFilter {
 		
 		double sum2=0;
 		int K = Gamma.length;
+		wn_filter = new double[L_filter]; 
 		
 		for(int l=0;l < L_filter; l++) {
 			
 			double sum = 0.0; 
 			double sumi = 0.0;
 			
-			for(int n=0; n <= K; n++) {
+			for(int n=0; n < K; n++) {
 				sum = sum + Gamma[n]*Math.cos(-lag*Math.PI*n/K)*Math.cos(Math.PI*n*l/K);
 				sumi = sumi + Gamma[n]*Math.sin(-lag*Math.PI*n/K)*Math.sin(Math.PI*n*l/K);
 			}     
-			if(l==0) {wn_filter[0] = sum*sum;}
-			else
-			{wn_filter[l] = sum*sum + sumi*sumi;} //(sum*sum + sumi*sumi);} 
+			if(l==0) wn_filter[0] = sum/2;
+			else wn_filter[l] = sum; //(sum*sum + sumi*sumi);} 
 			sum2 = sum2 + wn_filter[l];
-		}
-		for(int l=0; l < L_filter; l++) {
-			wn_filter[l] = wn_filter[l]/(sum2-wn_filter[0]/2.0);
-		}    
+		} 
 	}
 	
 }

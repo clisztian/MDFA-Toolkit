@@ -11,7 +11,7 @@ import org.joda.time.format.DateTimeFormatter;
 import com.csvreader.CsvReader;
 
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
-import ch.imetrica.mdfa.unbiased.WhiteNoiseFilter;
+import ch.imetrica.mdfa.prefilter.WhiteNoiseFilter;
 import ch.imetrica.mdfa.util.MdfaUtil;
 
 

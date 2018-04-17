@@ -23,6 +23,7 @@ public class VectorSignalSeries implements MdfaSeries {
 	private ArrayList<double[]> coeffs;
 	private ArrayList<double[]> preFilterCoeffs = null;
 	private String name;
+	private boolean preFilteringActivated = true;
 	
 	public VectorSignalSeries(TargetSeries anytarget, String anyformat) {
 		
@@ -78,7 +79,6 @@ public class VectorSignalSeries implements MdfaSeries {
 		}
 		
 		if(isPrefiltered()) {
-			
 			coeffs.set(i, MdfaUtil.convolve(preFilterCoeffs.get(i), b));
 		}
 		else { 
@@ -140,7 +140,6 @@ public class VectorSignalSeries implements MdfaSeries {
 			}
 			signalSeries.add(new TimeSeriesEntry<double[]>(target.getTargetDate(i), sigvec));	
 		}	
-		
 	}
 
 
@@ -193,8 +192,7 @@ public class VectorSignalSeries implements MdfaSeries {
 
 	@Override
 	public SeriesType getSeriesType() {
-		// TODO Auto-generated method stub
-		return null;
+		return seriesType;
 	}
 
 	@Override
@@ -242,16 +240,54 @@ public class VectorSignalSeries implements MdfaSeries {
 		
 	}
 
+	/**
+	 * Returns the prefiltered series at index i
+	 * if prefiltering is turned on. Else it 
+	 * will return 0
+	 * 
+	 * @param i
+	 * @return
+	 *    Prefiltered series at index i, if exists.
+	 *    Otherwise 0
+	 * @throws Exception 
+	 */
+	public double getPrefilteredValue(int m, int i) throws Exception {
+		
+		if(m >= preFilterCoeffs.size()) {
+			throw new Exception("Prefilter hasn't been defined for signal " + m);
+		}
+		
+		if(!isPrefiltered()) {
+			return 0;
+		}
+		
+		double val = 0;
+		int filter_length = Math.min(i+1, preFilterCoeffs.get(m).length);
+
+		for (int l = 0; l < filter_length; l++) {
+			val = val + preFilterCoeffs.get(m)[l]*target.getTargetValue(i - l);
+		}
+		return val;
+	}
+	
+	
 	@Override
 	public boolean isPrefiltered() {
-		return (preFilterCoeffs.size() > 0);
+		return (preFilterCoeffs.size() > 0 && preFilteringActivated);
 	}
 
+	public void prefilterActivate(boolean prefilter) {
+		preFilteringActivated = prefilter;
+	}
+	
 	public void clearFilters() {
-		preFilterCoeffs.clear();
 		coeffs.clear();
 	}
-
+	
+	public void clearPreFilters() {
+		preFilterCoeffs.clear();
+	}
+	
 	public void addPrefilter(double[] whiteFilter) {
 		preFilterCoeffs.add(whiteFilter);
 	}
@@ -275,6 +311,24 @@ public class VectorSignalSeries implements MdfaSeries {
 		return (coeffs.size() > 0);
 	}
 
+	public TargetSeries getTargetSeries() {
+		return target;
+	}
+
+	public double[] getCoefficientSet(int n) {
+		return coeffs.get(n);
+	}
 	
+	public int getNumberPrefilterCoefficientSets() {
+		return preFilterCoeffs.size();
+	}
 	
+	public double[] getPrefilterSet(int n) {
+		return preFilterCoeffs.get(n);
+	}
+
+	public void setPrefilter(int i, double[] whiteFilter) {
+		preFilterCoeffs.set(i, whiteFilter);
+	}
+
 }

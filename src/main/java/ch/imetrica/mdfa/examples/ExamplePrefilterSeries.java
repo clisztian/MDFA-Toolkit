@@ -6,11 +6,11 @@ import ch.imetrica.mdfa.datafeeds.CsvFeed;
 import ch.imetrica.mdfa.mdfa.MDFABase;
 import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
+import ch.imetrica.mdfa.prefilter.WhiteNoiseFilter;
 import ch.imetrica.mdfa.series.MultivariateSeries;
 import ch.imetrica.mdfa.series.SignalSeries;
 import ch.imetrica.mdfa.series.TargetSeries;
 import ch.imetrica.mdfa.series.TimeSeriesEntry;
-import ch.imetrica.mdfa.unbiased.WhiteNoiseFilter;
 
 public class ExamplePrefilterSeries {
 
