@@ -43,6 +43,9 @@ public class MultivariateFXSeries {
 	private int targetSeriesIndex = 0;         
 	private boolean prefilterAll = false;
 	
+	private double minValue = Double.MAX_VALUE;
+	private double maxValue = -Double.MAX_VALUE;
+	
 	/**
 	 * A MultivariateFX series is instantiated with an array of 
 	 * MDFABase objects, each object defining a real-time signal 
@@ -153,7 +156,11 @@ public class MultivariateFXSeries {
     			sigVal = MdfaUtil.plus(sigVal, anySignals.get(m).getLatestSignalValue());
     		}		
 		}
-		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));	 	
+		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));
+		
+		double value = getTargetValue(size()-1);
+		if(value > maxValue) maxValue = value;
+		else if(value < minValue) minValue = value;
     }
 	
 	
@@ -267,6 +274,10 @@ public class MultivariateFXSeries {
 		
 		fxSignals.clear();
 		int N = anySignals.get(0).size();
+		
+		minValue = Double.MAX_VALUE;
+		maxValue = -Double.MAX_VALUE;
+		
 		for(int i = 0; i < N; i++) {
 			
 			double[] val = anySignals.get(0).getSignalValue(i);
@@ -284,6 +295,12 @@ public class MultivariateFXSeries {
 				}
 			}
 			fxSignals.add(new TimeSeriesEntry<double[]>(current, val));	
+			
+			if(i > N - 300) {
+				double value = getTargetValue(i);
+				if(value > maxValue) maxValue = value;
+				else if(value < minValue) minValue = value;	
+			}
 		}
 	}
 	
@@ -499,8 +516,17 @@ public class MultivariateFXSeries {
 	 */
 	public void adjustFractionalDifferenceData(double d) {
 	
+		double value;
 		for(int i = 0; i < anySignals.size(); i++) {	
 				anySignals.get(i).getTargetSeries().adjustFractionalDifferenceData(d);			
+		}
+		
+		minValue = Double.MAX_VALUE;
+		maxValue = -Double.MAX_VALUE;
+		for(int i = size() - 300; i < size(); i++) {
+			value = getTargetValue(i);
+			if(value > maxValue) maxValue = value;
+			else if(value < minValue) minValue = value;	
 		}
 	}
 
@@ -580,6 +606,14 @@ public class MultivariateFXSeries {
 			}
 		}
 		return true;
+	}
+	
+	public double getMaxValue() {
+		return maxValue;
+	}
+	
+	public double getMinValue() {
+		return minValue;
 	}
 	
 }
