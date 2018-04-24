@@ -15,7 +15,7 @@ public class PriceLimit {
         return userId;
     }
 
-    public String getStockSymbol() {
+    public String getSymbol() {
         return symbol;
     }
 

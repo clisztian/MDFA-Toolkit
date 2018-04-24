@@ -42,9 +42,11 @@ public class MultivariateFXSeries {
 	private DateTimeFormatter formatter;
 	private int targetSeriesIndex = 0;         
 	private boolean prefilterAll = false;
-	
+		
 	private double minValue = Double.MAX_VALUE;
 	private double maxValue = -Double.MAX_VALUE;
+	private double latest = 0;
+	private double previous = 0;
 	
 	/**
 	 * A MultivariateFX series is instantiated with an array of 
@@ -95,7 +97,6 @@ public class MultivariateFXSeries {
 	
 	
 	/**
-	 * 
 	 * Adds a new multivariate series value for the given date. 
 	 * The new multivariate signal will be computed automatically 
 	 * at the given date. This assumes that all coefficients are
@@ -114,6 +115,8 @@ public class MultivariateFXSeries {
     		throw new Exception("Sizes of array and number of time series don't match");
     	}
     	
+
+    	previous = latest;
     	double[] sigVal = new double[anySolvers.size()];
     	for(int m = 0; m < anySignals.size(); m++) { 		
     		
@@ -123,7 +126,9 @@ public class MultivariateFXSeries {
     			sigVal = MdfaUtil.plus(sigVal, anySignals.get(m).getLatestSignalValue());
     		}
 		}
-		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));	 	
+		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));	 
+		latest = sigVal[0]; 
+		
     }
 	
     
@@ -147,6 +152,7 @@ public class MultivariateFXSeries {
     		throw new Exception("Sizes of array and number of time series don't match");
     	}
     	
+    	previous = latest;
     	double[] sigVal = new double[anySolvers.size()];
     	for(int m = 0; m < anySignals.size(); m++) { 		
     		
@@ -157,6 +163,7 @@ public class MultivariateFXSeries {
     		}		
 		}
 		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));
+		latest = sigVal[0]; 
 		
 		double value = getTargetValue(size()-1);
 		if(value > maxValue) maxValue = value;
@@ -616,4 +623,23 @@ public class MultivariateFXSeries {
 		return minValue;
 	}
 	
+	public int getSize() {	
+		return fxSignals.size();
+	}
+	
+	public long getLongtime() {
+		return (formatter.parseDateTime(fxSignals
+				         .last().getDateTime()))
+				         .getMillis()/1000;
+	}
+
+
+	public double getPrevious() {
+		return previous;
+	}
+	
+	public double getLatest() {
+		return latest;
+	}
+
 }
