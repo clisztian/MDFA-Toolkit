@@ -10,6 +10,10 @@ public class MultivarPriceTick {
     private DateTime timestamp;
 	private long longtime;
 	
+	private double askprice;
+	private double bidprice;
+	private int targetSeries = 0;
+	
 	public MultivarPriceTick(String stockSymbol, DateTime timestamp, double[] bid, double[] ask) {
         
 		this.symbol = stockSymbol;
@@ -17,6 +21,8 @@ public class MultivarPriceTick {
         this.ask = ask;
         this.timestamp = timestamp;
         this.longtime = timestamp.getMillis()/1000;
+        this.askprice = ask[targetSeries];
+        this.bidprice = ask[targetSeries];
     }
 
     public String getSymbol() {
@@ -40,6 +46,7 @@ public class MultivarPriceTick {
     	return timestamp;
     }
 
+    
     public double[] getMid() {
     	
     	double[] mid = new double[bid.length];
@@ -53,4 +60,13 @@ public class MultivarPriceTick {
         return timestamp.toString() + ", Symbol=" + symbol +
                 "  bid=" + bid[0] + " ask=" + ask[0];
     }
+
+	public double getAskprice() {
+		return askprice;
+	}
+
+	public double getBidprice() {
+		return bidprice;
+	}
+
 }

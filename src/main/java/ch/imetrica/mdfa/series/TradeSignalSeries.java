@@ -26,27 +26,37 @@ public class TradeSignalSeries {
 		SELL;
 	}
 	
+	public enum CurrentPosition { 
+		LONG,
+		SHORT;
+	}
 	
 	private MultivariateFXSeries tradeSignal;
 
-    SideType side;	
+    SideType signalSide;	
+	CurrentPosition position;
 	
 	private AnyConfiguration cep;
 	private EPRuntime cepRT;
 	private EPStatement takeProfitStatement = null;
 	private EPStatement stopLossStatement = null;
-	private EPStatement initialPriceStatement = null;
+
 	private EPStatement entryRuleStatement = null;
 	private EPStatement signalChangeStatement = null;
 
 	private EPStatement updateCoefficientStatement = null;
 	private EPStatement updateSignalStatement = null;
-	private EPStatement addValueStatement = null;
-	
-	private int updateObservations;
 
 	
+	private int updateObservations;
+	private double entryPercentage;
+	private double initialPrice;
+	private int anyTarget = 0;
+
+	public double lowerLimit;
+	public double upperLimit;
 	
+	MultivarPriceTick currentTick;
 	
 	public TradeSignalSeries(MultivariateFXSeries signal) {
 		
@@ -123,7 +133,7 @@ public class TradeSignalSeries {
 	 * 
 	 * 
 	 * 
-	 * @return this TradeSignalSeries
+	 * @return this TradeS ignalSeries
 	 */
 	public TradeSignalSeries addSignalChangeRule() {
 		
@@ -138,8 +148,7 @@ public class TradeSignalSeries {
 
 	public TradeSignalSeries addEnterMarketRule(double percent) {
 		
-		
-		
+		this.entryPercentage = percent;
 		return this;
 	}
 	
@@ -165,16 +174,41 @@ public class TradeSignalSeries {
 			
 			double latest = getLatest();
 			System.out.println("Latest = " + latest);
-			if(latest > 0) {
+			String entryExpressionText;
 			
+			if(latest > 0) {
 				
-			   System.out.println("Signal went positive");				
+				signalSide = SideType.BUY;
+				System.out.println("Signal went positive");	            				
+				
+				initialPrice = currentTick.getAsk()[anyTarget];
+				lowerLimit = initialPrice * (1.0 - (entryPercentage / 100.0));
+				
+				entryExpressionText = "tick=MultivarPriceTick(" + 
+	                       "askprice < " + lowerLimit + ")"; 
+				
 			}
 			else {
-			   System.out.println("Signal went negative");		
+				
+				signalSide = SideType.SELL;
+				System.out.println("Signal went negative");		
+				
+				initialPrice = currentTick.getBid()[anyTarget];
+				upperLimit = initialPrice * (1.0 + (entryPercentage / 100.0));
+				
+				entryExpressionText = "tick=MultivarPriceTick(" + 
+	                       "bidprice > " + upperLimit + ")"; 
 			}
+			
+			if (entryRuleStatement != null) 
+            	entryRuleStatement.removeAllListeners();
+			
+			entryRuleStatement = cep.getCEP().getEPAdministrator().createPattern(entryExpressionText);
+			entryRuleStatement.addListener(new MarketEntryListener());
 		}		
 	}
+	
+	
 	
     public class ComputeCoefficientListener implements UpdateListener {
 
@@ -193,10 +227,10 @@ public class TradeSignalSeries {
 
         public void update(EventBean[] newData, EventBean[] oldData) {
         	
-        	MultivarPriceTick newtick = (MultivarPriceTick) newData[0].get("tick");
+        	currentTick = (MultivarPriceTick) newData[0].get("tick");
         	
-        	double[] value = newtick.getMid();
-        	String date = newtick.getTimestamp().toString(tradeSignal.getFormatter());
+        	double[] value = currentTick.getMid();
+        	String date = currentTick.getTimestamp().toString(tradeSignal.getFormatter());
 
         	try {       		
         		
@@ -206,11 +240,33 @@ public class TradeSignalSeries {
         		
         		cepRT.sendEvent(tradeSignal);
         		
+        		
 			} catch (Exception e) {
 				e.printStackTrace();
 			}            
         }
     }
+    
+    
+    public class MarketEntryListener implements UpdateListener {
+
+    	@Override
+    	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
+    		
+    		MultivarPriceTick newtick = (MultivarPriceTick) newEvents[0].get("tick");
+    		
+    		if(signalSide == SideType.BUY) {
+    			
+    			System.out.println("Buying the ASKPRICE at " + newtick.getAskprice());
+   			
+    		}
+    		else if(signalSide == SideType.SELL) {
+    			
+    			System.out.println("Selling the BIDPRICE at " + newtick.getBidprice());
+    		}
+    	}
+    }
+    
 	
     
     public static void main(String[] args) throws Exception {
@@ -225,7 +281,7 @@ public class TradeSignalSeries {
 		/* Create some MDFA sigEx processes */
 		MDFABase[] anyMDFAs = new MDFABase[1];
 		
-		anyMDFAs[0] = (new MDFABase()).setLowpassCutoff(Math.PI/20.0)
+		anyMDFAs[0] = (new MDFABase()).setLowpassCutoff(Math.PI/8.0)
 				.setI1(1)
 				.setHybridForecast(.01)
 				.setSmooth(.3)
@@ -254,11 +310,12 @@ public class TradeSignalSeries {
         
         TradeSignalSeries tradeSignal = new TradeSignalSeries(fxSeries)
         								.addUpdateSignalRule(300)
-        								.addSignalChangeRule();
+        								.addSignalChangeRule()
+        								.addEnterMarketRule(.10);
 
 
                
-        for(int i = 0; i < 100; i++) {
+        for(int i = 0; i < 200; i++) {
 			
 			TimeSeriesEntry<double[]> observation = marketFeed.getNextMultivariateObservation();
 		
