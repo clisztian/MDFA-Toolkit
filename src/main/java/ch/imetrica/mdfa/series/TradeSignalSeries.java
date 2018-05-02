@@ -15,6 +15,7 @@ import com.espertech.esper.client.UpdateListener;
 import ch.imetrica.mdfa.datafeeds.CsvFeed;
 import ch.imetrica.mdfa.mdfa.MDFABase;
 import ch.imetrica.mdfa.tradengineer.AnyConfiguration;
+import ch.imetrica.mdfa.tradengineer.eventbeans.CurrentPosition;
 import ch.imetrica.mdfa.tradengineer.eventbeans.MultivarPriceTick;
 import ch.imetrica.mdfa.tradengineer.eventbeans.PriceTick;
 
@@ -26,10 +27,7 @@ public class TradeSignalSeries {
 		SELL;
 	}
 	
-	public enum CurrentPosition { 
-		LONG,
-		SHORT;
-	}
+
 	
 	private MultivariateFXSeries tradeSignal;
 
@@ -146,6 +144,14 @@ public class TradeSignalSeries {
 	}
 	
 
+	public TradeSignalSeries addTakeProfitRule(double takeProfit) {
+		
+		String takeProfitText; 
+		
+		return this;
+	}
+	
+	
 	public TradeSignalSeries addEnterMarketRule(double percent) {
 		
 		this.entryPercentage = percent;
@@ -236,7 +242,7 @@ public class TradeSignalSeries {
         		
         		tradeSignal.addValue(date, value);
         		
-        		System.out.println(date + ", " + tradeSignal.getLatestSignalEntry().getValue()[0]);
+        		System.out.println(date + ", " + tradeSignal.getLatestSignalEntry().getValue()[0] + ", " + value[0]);
         		
         		cepRT.sendEvent(tradeSignal);
         		
@@ -258,11 +264,12 @@ public class TradeSignalSeries {
     		if(signalSide == SideType.BUY) {
     			
     			System.out.println("Buying the ASKPRICE at " + newtick.getAskprice());
-   			
+    			position.setCurrentPosition(CurrentPosition.Position.LONG);						
     		}
     		else if(signalSide == SideType.SELL) {
     			
     			System.out.println("Selling the BIDPRICE at " + newtick.getBidprice());
+    			position.setCurrentPosition(CurrentPosition.Position.SHORT);	
     		}
     	}
     }
