@@ -30,12 +30,6 @@ dependencies {
     testCompile group: 'org.nd4j', name: 'nd4j-native-platform', version: '0.9.1'
     compile group: 'jfree', name: 'jfreechart', version: '1.0.13'
     
-    // https://mvnrepository.com/artifact/org.jfree/jfreechart-fx
-    compile group: 'org.jfree', name: 'jfreechart-fx', version: '1.0.1'
-    
-    // https://mvnrepository.com/artifact/com.espertech/esper
-    compile group: 'com.espertech', name: 'esper', version: '5.3.0'
-
     // Declare the dependency for your favourite test framework you want to use in your tests.
     // TestNG is also supported by the Gradle Test task. Just change the
     // testCompile dependency to testCompile 'org.testng:testng:6.8.1' and add
