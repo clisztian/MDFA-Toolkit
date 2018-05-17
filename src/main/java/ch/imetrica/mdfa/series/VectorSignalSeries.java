@@ -316,6 +316,10 @@ public class VectorSignalSeries implements MdfaSeries {
 	}
 
 	public double[] getCoefficientSet(int n) {
+		
+		if(coeffs.size() == 0) {
+			return preFilterCoeffs.get(n);
+		}
 		return coeffs.get(n);
 	}
 	

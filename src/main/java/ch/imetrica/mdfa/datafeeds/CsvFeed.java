@@ -162,7 +162,7 @@ public class CsvFeed {
 			timestamps[0] = date_stamp;
 		}
 		else {
-			throw new Exception();
+			return null;
 		}
 			
 		for(int i = 1; i < marketDataFeeds.length; i++) {
@@ -177,11 +177,13 @@ public class CsvFeed {
 				prices[i] = price;
 			}
 			else {
-				throw new Exception();
+				return null;
 			}		
 		}		
 		return (new TimeSeriesEntry<double[]>(timestamps[0], prices));
 	}
 	
-	
+	public CsvReader[] getMarketDataFeeds() {
+		return marketDataFeeds;
+	}
 }

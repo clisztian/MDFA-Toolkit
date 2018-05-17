@@ -642,4 +642,10 @@ public class MultivariateFXSeries {
 		return latest;
 	}
 
+
+	public double getSymmetricSignal(int i) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }
