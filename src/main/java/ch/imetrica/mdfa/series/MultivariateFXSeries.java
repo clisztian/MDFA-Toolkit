@@ -1,10 +1,6 @@
 package ch.imetrica.mdfa.series;
 
-import java.nio.channels.SelectableChannel;
 import java.util.ArrayList;
-import java.util.Vector;
-
-import org.jfree.ui.RefineryUtilities;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -14,7 +10,6 @@ import ch.imetrica.mdfa.mdfa.MDFAFactory;
 import ch.imetrica.mdfa.mdfa.MDFASolver;
 import ch.imetrica.mdfa.plotutil.TimeSeriesPlot;
 import ch.imetrica.mdfa.prefilter.WhiteNoiseFilter;
-import ch.imetrica.mdfa.series.MdfaSeries.SeriesType;
 import ch.imetrica.mdfa.spectraldensity.SpectralBase;
 import ch.imetrica.mdfa.util.MdfaUtil;
 
@@ -276,7 +271,12 @@ public class MultivariateFXSeries {
 		}	
 	}
 	
-	
+	/**
+	 * Computes the aggregate signal from all the series
+	 * for each MDFASolver
+	 * 
+	 * @throws Exception
+	 */
 	public void computeAggregateSignal() throws Exception {
 		
 		fxSignals.clear();
@@ -312,7 +312,6 @@ public class MultivariateFXSeries {
 	}
 	
 	/**
-	 * 
 	 * Returns access to the ith MDFAFactory
 	 * to adapt/change MDFA parameters for 
 	 * the ith signal in this multivariate signal
@@ -362,8 +361,8 @@ public class MultivariateFXSeries {
 	
 	
 	/**
-	 * 
-	 * 
+	 * Set the white noise filter for the ith 
+	 * signal definition 
 	 * 
 	 * @param i for the ith signal definition
 	 * @param L number of coefficients
@@ -415,7 +414,6 @@ public class MultivariateFXSeries {
 		final String title = myTitle;
         final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, this);
         eurusd.pack();
-        RefineryUtilities.positionFrameRandomly(eurusd);
         eurusd.setVisible(true);
 	}
 

@@ -1,5 +1,5 @@
 package ch.imetrica.mdfa.series;
-import org.jfree.ui.RefineryUtilities;
+import org.jfree.ui.ApplicationFrame;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -198,7 +198,6 @@ public class TargetSeries implements MdfaSeries {
 		final String title = "EURUSD frac diff";
         final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, this);
         eurusd.pack();
-        RefineryUtilities.positionFrameRandomly(eurusd);
         eurusd.setVisible(true);
 		
 	}
@@ -209,7 +208,6 @@ public class TargetSeries implements MdfaSeries {
 		final String title = "EURUSD frac diff";
         final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, collection);
         eurusd.pack();
-        RefineryUtilities.positionFrameRandomly(eurusd);
         eurusd.setVisible(true);
 		
 	}

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.commons.math3.complex.Complex;
-import org.jfree.ui.RefineryUtilities;
+
 
 import com.csvreader.CsvReader;
 
@@ -313,7 +313,6 @@ public class SpectralBase {
 			final String title = "EURUSD frac diff";
 	        final TimeSeriesPlot eurusd = new TimeSeriesPlot(title, prdx);
 	        eurusd.pack();
-	        RefineryUtilities.positionFrameRandomly(eurusd);
 	        eurusd.setVisible(true);
 			
 	}
