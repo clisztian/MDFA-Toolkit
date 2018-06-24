@@ -1,6 +1,6 @@
 # MDFA-Toolkit
 
-![alt text](imgs/Selection_067.png =250x400)
+![alt text](imgs/Selection_067.png)
 
 The multivariate direct filter approach is a generic real-time signal extraction and forecasting framework endowed with a richly parameterized user-interface allowing for adaptive and fully-regularized data analysis in large multivariate time series. The methodology is based entirely in the frequency domain, where all optimization criteria is defined from regularization, to forecasting, to filter constraints. For an in-depth tutorial on the mathematical formation, the reader is invited to check out any of the many publications or tutorials on the subject from https://blog.zhaw.ch/sef.
 
