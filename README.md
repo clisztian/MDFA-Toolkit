@@ -45,8 +45,7 @@ in real-time might be an attractive feature. The transformation of the data can 
 3) For stationary series, standard mean-variance normalization or a more exotic GARCH normalization which attempts to model the underlying 
 volatility is also available.
 
-Signal extraction definition:
-Once the data streaming and transormation of the 
+
 
 Big Data analytics in time series
 We also provide an interface to Apache Spark-TS, which provides a Spark RDD for Time series objects, geared towards high dimension multivariate time series.
@@ -54,4 +53,9 @@ Large-scale time-series data shows up across a variety of domains. Distributed a
 essentially enables analysis of data sets comprising millions of time series, each with millions of measurements. The package runs atop Apache Spark.
 
 Installation: 
-The package is   
+The package is built using the Gradle package and dependency management tool along with the 
+lombok utility which comes as a jar file in the package. To install lombok for your IDE, please refer
+to the installation instructions of lombok. 
+
+Once the package is cloned in an appropriate folder, import it using Import->Gradle->Gradle Project (here assumes Eclipse being used). All
+the dependencies will be automatically downloaded, included the ND4J which handles the vector/matrix computations, and all the JUnit tests will be run.  

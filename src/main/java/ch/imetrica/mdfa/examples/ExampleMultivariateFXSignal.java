@@ -45,9 +45,9 @@ public class ExampleMultivariateFXSignal {
 		
 		
 		MultivariateFXSeries fxSeries = new MultivariateFXSeries(anyMDFAs, "yyyy-MM-dd");	
-		fxSeries.addSeries(new TargetSeries(0.6, true, "AAPL"));
-		fxSeries.addSeries(new TargetSeries(0.6, true, "QQQ"));
-		fxSeries.addSeries(new TargetSeries(0.6, true, "SPY"));
+		fxSeries.addSeries(new TargetSeries(1.0, true, "AAPL"));
+		fxSeries.addSeries(new TargetSeries(1.0, true, "QQQ"));
+		fxSeries.addSeries(new TargetSeries(1.0, true, "SPY"));
 		
 		
         for(int i = 0; i < 600; i++) {

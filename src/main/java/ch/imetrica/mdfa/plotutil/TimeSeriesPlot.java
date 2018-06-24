@@ -200,11 +200,12 @@ public class TimeSeriesPlot extends ApplicationFrame {
     			}               
 			}
 
-			dataset.addSeries(targetSeries);
+	
 		
 			for(int m = 0; m < M; m++) {
 				dataset.addSeries(signalSeries[m]);
 			} 	
+			dataset.addSeries(targetSeries);
 	    	return dataset;
 		}
 
