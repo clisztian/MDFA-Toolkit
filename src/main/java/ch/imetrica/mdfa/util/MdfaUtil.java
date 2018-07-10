@@ -31,10 +31,10 @@ public class MdfaUtil {
     }
 	
 	
-	public static double[] plus(double[] y, double[] x) {
+	public static double[] plus(double[] y, double[] x, double mult) {
 		
 		for(int i = 0; i < y.length; i++) {
-			y[i] += x[i];
+			y[i] += mult*x[i];
 		}
 		return y;
 	}
