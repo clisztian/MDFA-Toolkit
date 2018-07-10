@@ -4,6 +4,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import com.csvreader.CsvReader;
 
 import ch.imetrica.mdfa.series.TimeSeries;
@@ -29,6 +33,11 @@ public class CsvFeed {
 	private CsvReader marketDataFeed;
 	private String dateColumnName;
 	private String priceColumnName;
+	
+	private DateTime dt;
+	private DateTimeFormatter dtfOut;
+	private String[] headers;
+	
 	
 	public CsvFeed(String dataFile, String dateName, String priceName) throws IOException {
 		
@@ -65,6 +74,31 @@ public class CsvFeed {
 		this.priceColumnName = priceName;
 	}
 	
+	/**
+	 * Create a CsvFeed for data files that do not have a header or timestamp values
+	 * The timestamp will be created to be the daily stamp from the day of creation of the 
+	 * CsvFeed object. 
+	 * 
+	 * 
+	 * @param dataFiles
+	 * @throws IOException 
+	 */
+	public CsvFeed(String dataFile) throws IOException {
+		
+		dt = new DateTime();
+		dtfOut = DateTimeFormat.forPattern("yyyy-MM-dd");
+
+		this.marketDataFeed = new CsvReader(dataFile);
+		this.marketDataFeed.re
+		int nCols = this.marketDataFeed.getColumnCount();
+		headers = new String[nCols];
+		System.out.println(nCols);
+		
+		for(int i = 0; i < nCols; i++) {
+			headers[i] = "DataColumn_" + i;
+		}
+		this.marketDataFeed.setHeaders(headers);
+	}
 	
 	/**
 	 * 
@@ -144,28 +178,54 @@ public class CsvFeed {
 	
 	public TimeSeriesEntry<double[]> getNextMultivariateObservation() throws Exception {
 		
-		if(marketDataFeeds == null) {
-			throw new Exception();
-		}
-
-		double price;
-		String date_stamp;
-		double[] prices = new double[marketDataFeeds.length];
-		String[] timestamps = new String[marketDataFeeds.length];
 		
-		if(marketDataFeeds[0].readRecord()) {
+		if(dt != null && headers != null) {
+		
+			if(marketDataFeed == null) {
+				throw new Exception();
+			}
+			
+			String date_stamp;
+			double[] prices = new double[headers.length];
+			
+			if(marketDataFeed.readRecord()) {
+				
+				for(int i = 0; i < headers.length; i++) {					
+					prices[i] = (new Double(marketDataFeed.get(headers[i]))).doubleValue();
+					System.out.println(i + " " + prices[i]);
+				}
+				date_stamp = dt.toString(dtfOut);
+				dt = dt.plusDays(1);
+			}
+			else {
+				return null;
+			}
+			return (new TimeSeriesEntry<double[]>(date_stamp, prices));
+		}
+		else {
+		
+		 if(marketDataFeeds == null) {
+		 	throw new Exception();
+		 }
+
+		 double price;
+		 String date_stamp;
+		 double[] prices = new double[marketDataFeeds.length];
+		 String[] timestamps = new String[marketDataFeeds.length];
+		
+		 if(marketDataFeeds[0].readRecord()) {
 		
 			price = (new Double(marketDataFeeds[0].get(priceColumnName))).doubleValue();
 			date_stamp = marketDataFeeds[0].get(dateColumnName);	
 			
 			prices[0] = price;
 			timestamps[0] = date_stamp;
-		}
-		else {
+		 }
+		 else {
 			return null;
-		}
+		 }
 			
-		for(int i = 1; i < marketDataFeeds.length; i++) {
+		 for(int i = 1; i < marketDataFeeds.length; i++) {
 			
 			if(marketDataFeeds[i].readRecord()) {
 				
@@ -179,8 +239,9 @@ public class CsvFeed {
 			else {
 				return null;
 			}		
-		}		
-		return (new TimeSeriesEntry<double[]>(timestamps[0], prices));
+		 }		
+		 return (new TimeSeriesEntry<double[]>(timestamps[0], prices));
+		}
 	}
 	
 	public CsvReader[] getMarketDataFeeds() {

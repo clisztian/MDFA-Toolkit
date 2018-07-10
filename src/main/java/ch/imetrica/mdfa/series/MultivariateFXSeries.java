@@ -42,7 +42,7 @@ public class MultivariateFXSeries {
 	private double maxValue = -Double.MAX_VALUE;
 	private double latest = 0;
 	private double previous = 0;
-	
+	private double filterMultiplier = 1.0;
 	/**
 	 * A MultivariateFX series is instantiated with an array of 
 	 * MDFABase objects, each object defining a real-time signal 
@@ -118,9 +118,10 @@ public class MultivariateFXSeries {
     		anySignals.get(m).addValue(date, val[m]);
     		
     		if(anySignals.get(m).hasFilter()) {
-    			sigVal = MdfaUtil.plus(sigVal, anySignals.get(m).getLatestSignalValue());
-    		}
+    			sigVal = MdfaUtil.plus(sigVal, anySignals.get(m).getLatestSignalValue(), filterMultiplier);
+    		}    	
 		}
+    	   	
 		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));	 
 		latest = sigVal[0]; 
 		
@@ -154,7 +155,7 @@ public class MultivariateFXSeries {
     		anySignals.get(m).addValue(date, val.get(m));
     		
     		if(anySignals.get(m).hasFilter()) {
-    			sigVal = MdfaUtil.plus(sigVal, anySignals.get(m).getLatestSignalValue());
+    			sigVal = MdfaUtil.plus(sigVal, anySignals.get(m).getLatestSignalValue(), filterMultiplier);
     		}		
 		}
 		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));
@@ -295,7 +296,7 @@ public class MultivariateFXSeries {
 				
 				if(current.equals(anySignals.get(m).getSignalDate(i))) {					
 					
-					val = MdfaUtil.plus(val, anySignals.get(m).getSignalValue(i));
+					val = MdfaUtil.plus(val, anySignals.get(m).getSignalValue(i), filterMultiplier);
 				}
 				else {
 					  throw new Exception("Dates do not match of the signals: " + current + " is not " + anySignals.get(m).getSignalDate(i));
@@ -644,6 +645,16 @@ public class MultivariateFXSeries {
 	public double getSymmetricSignal(int i) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+
+	public double getFilterMultiplier() {
+		return filterMultiplier;
+	}
+
+
+	public void setFilterMultiplier(double filterMultiplier) {
+		this.filterMultiplier = filterMultiplier;
 	}
 
 }

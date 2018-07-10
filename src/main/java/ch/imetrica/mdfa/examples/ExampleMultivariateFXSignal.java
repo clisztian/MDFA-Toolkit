@@ -13,9 +13,9 @@ public class ExampleMultivariateFXSignal {
 		
 		/* Create market feed */
 		String[] dataFiles = new String[3];
-		dataFiles[0] = "/home/lisztian/mdfaData/AAPL.daily.csv";
-		dataFiles[1] = "/home/lisztian/mdfaData/QQQ.daily.csv";
-		dataFiles[2] = "/home/lisztian/mdfaData/SPY.daily.csv";
+		dataFiles[0] = "data/AAPL.daily.csv";
+		dataFiles[1] = "data/QQQ.daily.csv";
+		dataFiles[2] = "data/SPY.daily.csv";
 		
 		CsvFeed marketFeed = new CsvFeed(dataFiles, "Index", "Open");
 				
