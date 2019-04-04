@@ -154,6 +154,18 @@ public class TargetSeries implements MdfaSeries {
 	}
 
 	/**
+	 * Returns the underlying transformed data
+	 * at timestamp i
+	 * @param i
+	 * @return
+	 */
+	public double getOriginalValue(int i) {
+		return timeSeries.get(i).getValue()[1];
+	}
+
+	
+	
+	/**
      * Returns the date at index i
      * @return 
      *          String the datetime at index i

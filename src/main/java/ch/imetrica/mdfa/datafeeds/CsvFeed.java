@@ -81,23 +81,29 @@ public class CsvFeed {
 	 * 
 	 * 
 	 * @param dataFiles
-	 * @throws IOException 
+	 * @param startDate First date to start the time series
+	 * @throws Exception 
 	 */
-	public CsvFeed(String dataFile) throws IOException {
+	public CsvFeed(String dataFile, DateTime startDate) throws Exception {
 		
-		dt = new DateTime();
+		dt = startDate;
 		dtfOut = DateTimeFormat.forPattern("yyyy-MM-dd");
 
 		this.marketDataFeed = new CsvReader(dataFile);
-		this.marketDataFeed.re
-		int nCols = this.marketDataFeed.getColumnCount();
-		headers = new String[nCols];
-		System.out.println(nCols);
-		
-		for(int i = 0; i < nCols; i++) {
-			headers[i] = "DataColumn_" + i;
+
+		if(this.marketDataFeed.readRecord()) {
+			
+			int nCols = this.marketDataFeed.getColumnCount();
+			headers = new String[nCols];
+			
+			for(int i = 0; i < nCols; i++) {
+				headers[i] = "DataColumn_" + i;
+			}
+			this.marketDataFeed.setHeaders(headers);
 		}
-		this.marketDataFeed.setHeaders(headers);
+		else {
+			throw new Exception("No data or not in any .csv format");
+		}
 	}
 	
 	/**
@@ -192,7 +198,6 @@ public class CsvFeed {
 				
 				for(int i = 0; i < headers.length; i++) {					
 					prices[i] = (new Double(marketDataFeed.get(headers[i]))).doubleValue();
-					System.out.println(i + " " + prices[i]);
 				}
 				date_stamp = dt.toString(dtfOut);
 				dt = dt.plusDays(1);

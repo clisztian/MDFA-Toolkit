@@ -21,6 +21,7 @@ public class VectorSignalSeries implements MdfaSeries {
 	private TimeSeries<double[]> signalSeries;
 	private TargetSeries target;
 	private ArrayList<double[]> coeffs;
+	private ArrayList<double[]> original_coeffs;
 	private ArrayList<double[]> preFilterCoeffs = null;
 	private String name;
 	private boolean preFilteringActivated = true;
@@ -28,6 +29,7 @@ public class VectorSignalSeries implements MdfaSeries {
 	public VectorSignalSeries(TargetSeries anytarget, String anyformat) {
 		
 		this.coeffs = new ArrayList<double[]>();
+		this.original_coeffs = new ArrayList<double[]>();
 		this.preFilterCoeffs = new ArrayList<double[]>();
 		this.target = anytarget;	
 		this.formatter = DateTimeFormat.forPattern(anyformat);
@@ -40,6 +42,7 @@ public class VectorSignalSeries implements MdfaSeries {
 		
 		this.coeffs = new ArrayList<double[]>();
 		this.preFilterCoeffs = new ArrayList<double[]>();
+		this.original_coeffs = new ArrayList<double[]>();
 		this.target = anytarget;	
 		this.formatter = DateTimeFormat.forPattern(anyformat);
 		this.signalSeries = new TimeSeries<double[]>();
@@ -50,6 +53,7 @@ public class VectorSignalSeries implements MdfaSeries {
 	public VectorSignalSeries(TargetSeries anytarget) {
 		
 		this.coeffs = new ArrayList<double[]>();
+		this.original_coeffs = new ArrayList<double[]>();
 		this.preFilterCoeffs = new ArrayList<double[]>();
 		this.target = anytarget;	
 
@@ -80,6 +84,7 @@ public class VectorSignalSeries implements MdfaSeries {
 		
 		if(isPrefiltered()) {
 			coeffs.set(i, MdfaUtil.convolve(preFilterCoeffs.get(i), b));
+			original_coeffs.set(i,b);
 		}
 		else { 
 			coeffs.set(i,b);
@@ -102,6 +107,7 @@ public class VectorSignalSeries implements MdfaSeries {
 		if(isPrefiltered()) {
 			
 			coeffs.add(MdfaUtil.convolve(preFilterCoeffs.get(coeffs.size()), b));
+			original_coeffs.add(b);
 		}
 		else { 
 			coeffs.add(b);
@@ -220,8 +226,7 @@ public class VectorSignalSeries implements MdfaSeries {
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return name;
 	}
 
 	@Override
@@ -229,6 +234,15 @@ public class VectorSignalSeries implements MdfaSeries {
 		return target.getTargetValue(i);
 	}
 
+	/**
+	 * Get the original underlying value
+	 * @param i
+	 * @return
+	 */
+	public double getOriginalValue(int i) {
+		return target.getOriginalValue(i);
+	}
+	
 	@Override
 	public void chopFirstObservations(int n) {
 
@@ -321,6 +335,13 @@ public class VectorSignalSeries implements MdfaSeries {
 			return preFilterCoeffs.get(n);
 		}
 		return coeffs.get(n);
+	}
+	
+	public double[] getOriginalCoefficients(int n) {
+		if(!preFilteringActivated) {
+			return coeffs.get(n);
+		}
+		return original_coeffs.get(n);
 	}
 	
 	public int getNumberPrefilterCoefficientSets() {

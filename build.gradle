@@ -28,19 +28,27 @@ dependencies {
     compile group: 'com.github.fommil.netlib', name: 'netlib-native_system-linux-x86_64', version: '1.1'
     compile group: 'net.sourceforge.javacsv', name: 'javacsv', version: '2.0'
     testCompile group: 'org.nd4j', name: 'nd4j-native-platform', version: '0.9.1'
-<<<<<<< HEAD
-    compile group: 'org.jfree', name: 'jfreechart', version: '1.5.0'
+    
     compile group: 'jfree', name: 'jfreechart', version: '1.0.13'
+    // https://mvnrepository.com/artifact/com.cloudera.sparkts/sparkts
+    compile group: 'com.cloudera.sparkts', name: 'sparkts', version: '0.4.0'
+    
+    // https://mvnrepository.com/artifact/org.apache.spark/spark-sql
+    compile group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.3.0'
+    
+    // https://mvnrepository.com/artifact/org.apache.spark/spark-mllib
+   compile group: 'org.apache.spark', name: 'spark-mllib_2.11', version: '2.3.0'
+    
+    // https://mvnrepository.com/artifact/org.apache.spark/spark-core
+    compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.3.0'
+    compile group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '2.3.0'
+    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.3.0'
+    
 
-=======
-    compile group: 'jfree', name: 'jfreechart', version: '1.0.13'
-    
->>>>>>> 17839711b7b19b794c2a687b995ca4b4fead0a5a
-    
-    // Declare the dependency for your favourite test framework you want to use in your tests.
-    // TestNG is also supported by the Gradle Test task. Just change the
-    // testCompile dependency to testCompile 'org.testng:testng:6.8.1' and add
-    // 'test.useTestNG()' to your build script.
+
+
+
+
     compile files ('jars/lombok.jar')   
     testCompile 'junit:junit:4.12'
 }
