@@ -33,6 +33,8 @@ public class CsvFeed {
 	private CsvReader marketDataFeed;
 	private String dateColumnName;
 	private String priceColumnName;
+	private String highColumnName;
+	private String lowColumnName;
 	
 	private DateTime dt;
 	private DateTimeFormatter dtfOut;
@@ -47,6 +49,16 @@ public class CsvFeed {
 		this.priceColumnName = priceName;
 	}
 	
+	public CsvFeed(String dataFile, String dateName, String priceName,
+			String highName, String lowName) throws IOException {
+		
+		this.marketDataFeed = new CsvReader(dataFile);
+		this.marketDataFeed.readHeaders();
+		this.dateColumnName = dateName;
+		this.priceColumnName = priceName;
+		this.highColumnName = highName;
+		this.lowColumnName = lowName;
+	}
 	
 	public CsvFeed(String[] dataFiles, String dateName, String priceName) throws IOException {
 		
@@ -179,6 +191,23 @@ public class CsvFeed {
 		String date_stamp = marketDataFeed.get(dateColumnName);		
 			
 		return (new TimeSeriesEntry<Double>(date_stamp, price));
+	}
+	
+	
+	public TimeSeriesEntry<double[]> getNextBar() throws NumberFormatException, IOException {
+		
+		if(!marketDataFeed.readRecord()) {
+			return null;
+		}
+		
+		double price = (new Double(marketDataFeed.get(priceColumnName))).doubleValue();
+		double high = (new Double(marketDataFeed.get(highColumnName))).doubleValue();
+		double low = (new Double(marketDataFeed.get(lowColumnName))).doubleValue();		
+		String date_stamp = marketDataFeed.get(dateColumnName);		
+		
+		double[] myBar = new double[] {low, high, price};
+		
+		return (new TimeSeriesEntry<double[]>(date_stamp, myBar));
 	}
 	
 	
