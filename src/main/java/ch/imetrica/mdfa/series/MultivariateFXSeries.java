@@ -123,6 +123,21 @@ public class MultivariateFXSeries {
     			sigVal = MdfaUtil.plus(sigVal, anySignals.get(m).getLatestSignalValue(), filterMultiplier);
     		}    	
 		}
+
+    	if(prefilterAll && anySignals.get(targetSeriesIndex).hasFilter()) {
+    		sigVal = anySignals.get(targetSeriesIndex).getLatestSignalValue();
+    	}
+    	else {
+	    	for(int m = 0; m < anySignals.size(); m++) { 		
+	    		  			
+	    		anySignals.get(m).addValue(date, val[m]);
+	    		
+	    		if(anySignals.get(m).hasFilter()) {
+	    			sigVal = MdfaUtil.plus(sigVal, anySignals.get(m).getLatestSignalValue(), filterMultiplier);
+	    		}    	
+			}
+    	}
+
     	   	
 		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));	 
 		latest = sigVal[0]; 

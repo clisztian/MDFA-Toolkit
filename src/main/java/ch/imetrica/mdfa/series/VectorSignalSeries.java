@@ -450,7 +450,7 @@ public class VectorSignalSeries implements MdfaSeries {
 		if(!preFilteringActivated) {
 			return coeffs.get(n);
 		}
-		return original_coeffs.get(n);
+		return coeffs.get(n);
 	}
 	
 	public int getNumberPrefilterCoefficientSets() {
