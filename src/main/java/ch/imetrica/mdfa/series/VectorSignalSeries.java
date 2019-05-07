@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import ch.imetrica.mdfa.market.Side;
 import ch.imetrica.mdfa.mdfa.MDFABase;
 import ch.imetrica.mdfa.series.MdfaSeries.SeriesType;
 import ch.imetrica.mdfa.util.MdfaUtil;
+import lombok.Getter;
 
 public class VectorSignalSeries implements MdfaSeries {
 
@@ -25,6 +27,51 @@ public class VectorSignalSeries implements MdfaSeries {
 	private ArrayList<double[]> preFilterCoeffs = null;
 	private String name;
 	private boolean preFilteringActivated = true;
+	
+	
+	/**
+	 * Financial info
+	 */
+	@Getter
+	private double TakeProfit = 30.0;
+	@Getter
+	private double StopLoss = -30.0;
+	@Getter
+	private boolean MeanRevert = false;
+	@Getter
+	private double MeanRevertPips;
+	@Getter
+	private double LastFillPrice = 0;
+	@Getter
+	private double CurrentBid = 0;
+	@Getter
+	private double CurrentAsk = 0;
+	@Getter
+	private double CurrentMid = 0;
+	@Getter
+	private double CurrentSpread = 100;
+	@Getter
+	private Side CurrentSide = Side.NEUTRAL;
+	@Getter
+	private int CurrentUnitValue = 0;
+	@Getter
+	private double CurrentPnL = 0;
+	@Getter
+	private double MeanRevertPrice = 0;
+	@Getter
+	private double PseudoPnL = 0;
+	@Getter
+	private boolean WaitingMeanRevert = false;
+	private boolean printDebug = false;
+	@Getter
+	private double CurrentSignal = 0;
+	@Getter
+	private double PreviousSignal = 0;
+	@Getter
+	private double RealizedPnl = 0;
+	
+	
+	
 	
 	public VectorSignalSeries(TargetSeries anytarget, String anyformat) {
 		
@@ -154,6 +201,12 @@ public class VectorSignalSeries implements MdfaSeries {
 		
 		target.addValue(date, val);
 		
+		CurrentBid = val; 
+		CurrentAsk = val; 
+		CurrentSpread = 0; 
+		CurrentMid = val;
+		
+		
 		if(coeffs.size() > 0) {
 			
 			int N = target.size();
@@ -166,6 +219,64 @@ public class VectorSignalSeries implements MdfaSeries {
 				}
 			}
 			signalSeries.add(new TimeSeriesEntry<double[]>(date, sigvec));	
+		
+			/**
+			 * Compute financial signals
+			 */
+			
+			CurrentSignal = sigvec[0];
+			
+			if(CurrentSide == Side.LONG) {
+				CurrentPnL = CurrentBid - LastFillPrice;
+			}
+			else if(CurrentSide == Side.SHORT) {
+				CurrentPnL = LastFillPrice - CurrentAsk;
+			}
+			
+			
+        	if((PreviousSignal > 0 && CurrentSignal < 0) || (PreviousSignal < 0 && CurrentSignal > 0)) {
+        	    
+        		if(!MeanRevert)  {
+        			
+        			if(CurrentSide != Side.NEUTRAL) {
+        				RealizedPnl = CurrentPnL;
+        			}
+        			
+        			CurrentUnitValue = (CurrentSignal > 0) ? 1 : -1;
+        			CurrentSide = (CurrentSignal > 0) ? Side.LONG : Side.SHORT;
+        			LastFillPrice = val;
+        		}
+        		else {
+        			
+        			if(CurrentSide != Side.NEUTRAL) {
+        			
+        				RealizedPnl = CurrentPnL; 
+        			    
+        				if(CurrentSide == Side.LONG) {
+        			    	if(printDebug) {
+        			    		System.out.println(date + " CurrentPnl = " + CurrentPnL + ", bid = " + CurrentBid + ", lastFill" + LastFillPrice);
+        			    	}
+        			    }
+        			    else {
+        			    	if(printDebug) {
+        			    		System.out.println(date + " CurrentPnl = " + CurrentPnL + ", ask = " + CurrentAsk + ", lastFill" + LastFillPrice + ", RealizedPnl = " + RealizedPnl);
+        			    	}
+        			    }
+        			}
+        			
+ 
+        			CurrentUnitValue = 0; 
+        			CurrentSide = Side.NEUTRAL;     			
+        			setMeanRevertPrice(val);
+        			
+        			if(printDebug) {
+        				
+        				System.out.println("Setting mean-revert at " + date + " for signal " + name 
+        				  + ", ask, bid = " + val + ", " + val + ", MeanRevertPrice = " + MeanRevertPrice);
+        			}
+        		}	
+        	}
+        	PreviousSignal = CurrentSignal;
 		}	
 	}
 
@@ -186,13 +297,11 @@ public class VectorSignalSeries implements MdfaSeries {
 
 	@Override
 	public TimeSeries<Double> getTimeSeries() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public TimeSeries<Double> getLatestValues(int n) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -355,5 +464,135 @@ public class VectorSignalSeries implements MdfaSeries {
 	public void setPrefilter(int i, double[] whiteFilter) {
 		preFilterCoeffs.set(i, whiteFilter);
 	}
+	
+	
+	/**
+	 * Financial functionality
+	 */
+	
+	/**
+	 * Set the current mean-revert price of this signal
+	 * @param price
+	 */
+	public void setMeanRevertPrice(double price) {
+		
+		if(this.MeanRevert) {
 
+			this.MeanRevertPrice = price;
+			this.WaitingMeanRevert = true;
+			this.PseudoPnL = 0;
+		}
+	}
+	
+	//--- Market Functions -------------------------------
+	/**
+	 * Sets the fill price
+	 * @param fill
+	 */
+	public void setFillPrice(double fill) {
+		this.LastFillPrice = fill;
+	}
+	
+	/**
+	 * Sets the current side
+	 * @param side
+	 */
+	public void setSide(Side side) {
+		this.CurrentSide = side;
+	}	
+	
+	
+	/**
+	 * Update the current Pnl
+	 * @param bid
+	 * @param ask
+	 * @param hour
+	 * @param time
+	 * @return
+	 */
+	public double updatePnl(String time, double val) {
+		
+		
+		CurrentBid = val; 
+		CurrentAsk = val; 
+		CurrentSpread = 0; 
+		CurrentMid = val;
+		CurrentPnL = 0;
+		double realizedPnl = 0;
+		
+
+		//--- Check PnL for positions open---------
+		if(CurrentSide == Side.LONG) {
+			CurrentPnL = CurrentBid - LastFillPrice;
+		}
+		else if(CurrentSide == Side.SHORT) {
+			CurrentPnL = LastFillPrice - CurrentAsk;
+		}
+
+		
+		if(CurrentPnL > TakeProfit)  {
+
+			CurrentUnitValue = 0;
+			CurrentSide = Side.NEUTRAL;
+			
+			if(printDebug) {
+				System.out.println("Take-profit at " + time + " for signal " + name + ", with CurrentPnL/TakeProfit " 
+			  + CurrentPnL + "/" + TakeProfit  + ", ask, bid = " + val + ", " + val + ", FillPrice = " + LastFillPrice);
+			}
+			realizedPnl = CurrentPnL;
+		}
+		else if(CurrentPnL < StopLoss)  {
+			
+			CurrentUnitValue = 0;
+			CurrentSide = Side.NEUTRAL;
+			
+			if(printDebug) {
+				System.out.println("Stop-loss at " + time + " for signal " + name + ", with CurrentPnL/StopLoss " 
+			  + CurrentPnL + "/" + StopLoss  + ", ask, bid = " + val + ", " + val + ", FillPrice = " + LastFillPrice);
+			}
+			realizedPnl = CurrentPnL;
+		}
+		
+
+		
+		if(this.MeanRevert && this.WaitingMeanRevert) {
+			
+			if(CurrentSignal > 0) {
+				PseudoPnL = CurrentMid - MeanRevertPrice;
+			}
+			else if(CurrentSignal < 0) {
+				PseudoPnL = MeanRevertPrice - CurrentMid;
+			}
+		
+			if(printDebug) {
+				System.out.println("Mean-revert pseudoPnl " + time + " for signal " + name + ", with PseudoPnL/MeanRevertPips " 
+			  + PseudoPnL + "/" + MeanRevertPips  + ", ask, bid = " + val + ", " + val + ", MeanRevertPrice = " + MeanRevertPrice);
+			}
+			
+		    if(PseudoPnL < MeanRevertPips) {
+		    	
+    			CurrentUnitValue = (CurrentSignal > 0) ? 1 : -1;
+    			CurrentSide = (CurrentSignal > 0) ? Side.LONG : Side.SHORT;		
+    			WaitingMeanRevert = false;
+    			LastFillPrice = val;
+    			
+    			if(printDebug) {
+    				
+    				System.out.println("Mean-revert satisfied " + time + " for signal " + name + ", with MeanRevertPips " + MeanRevertPips 
+    				  + ", ask, bid = " + val + ", " + val + ", FillPrice = " + LastFillPrice + ", " + CurrentUnitValue);
+    			}
+		    }
+		}
+		
+		RealizedPnl = realizedPnl;
+		return CurrentPnL;
+	}		
+	
+	public double getRealizedPnl() {
+		return RealizedPnl;
+	}
+	
+	public double getUnrealizedPnl() {
+		return CurrentPnL;
+	}
 }

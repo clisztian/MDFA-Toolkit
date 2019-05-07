@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import ch.imetrica.mdfa.market.Side;
 import ch.imetrica.mdfa.matrix.MdfaMatrix;
 import ch.imetrica.mdfa.mdfa.MDFABase;
 import ch.imetrica.mdfa.mdfa.MDFAFactory;
@@ -113,6 +114,7 @@ public class MultivariateFXSeries {
 
     	previous = latest;
     	double[] sigVal = new double[anySolvers.size()];
+    	
     	for(int m = 0; m < anySignals.size(); m++) { 		
     		
     		anySignals.get(m).addValue(date, val[m]);
@@ -124,6 +126,8 @@ public class MultivariateFXSeries {
     	   	
 		fxSignals.add(new TimeSeriesEntry<double[]>(date, sigVal));	 
 		latest = sigVal[0]; 
+		
+
 		
     }
 	
@@ -656,5 +660,31 @@ public class MultivariateFXSeries {
 	public void setFilterMultiplier(double filterMultiplier) {
 		this.filterMultiplier = filterMultiplier;
 	}
+
+
+	public double updatePnl(String time, double val) {
+		return anySignals.get(0).updatePnl(time, val);
+	}
+
+
+	public Side getCurrentSide() {
+		return anySignals.get(0).getCurrentSide();
+	}
+
+
+	public double computeSignal(String time, double bid, double ask, int hour, double bid2) {	
+		
+		anySignals.get(0).addValue(time,  bid);		
+		return anySignals.get(0).getCurrentPnL();
+	}
+	
+	public double getCurrentPnl() {
+		return anySignals.get(0).getCurrentPnL();
+	}
+	
+	public double getRealizedPnl() {
+		return anySignals.get(0).getRealizedPnl();
+	}
+	
 
 }

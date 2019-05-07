@@ -60,6 +60,10 @@ public class TimeSeriesPlot extends ApplicationFrame {
 	        
 	    }
 	    
+	    
+	    
+	    
+	    
 	    public TimeSeriesPlot(final String title, SignalSeries signal) throws Exception {
 	        
 	        super(title);

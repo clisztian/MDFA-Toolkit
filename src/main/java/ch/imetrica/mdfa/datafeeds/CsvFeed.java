@@ -3,6 +3,7 @@ package ch.imetrica.mdfa.datafeeds;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -52,8 +53,12 @@ public class CsvFeed {
 	public CsvFeed(String dataFile, String dateName, String priceName,
 			String highName, String lowName) throws IOException {
 		
+		System.out.println("Reading file");
 		this.marketDataFeed = new CsvReader(dataFile);
 		this.marketDataFeed.readHeaders();
+		
+		System.out.println(Arrays.toString(this.marketDataFeed.getHeaders()));
+		
 		this.dateColumnName = dateName;
 		this.priceColumnName = priceName;
 		this.highColumnName = highName;
@@ -196,6 +201,7 @@ public class CsvFeed {
 	
 	public TimeSeriesEntry<double[]> getNextBar() throws NumberFormatException, IOException {
 		
+
 		if(!marketDataFeed.readRecord()) {
 			return null;
 		}
