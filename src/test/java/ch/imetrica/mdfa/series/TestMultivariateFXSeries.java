@@ -52,7 +52,8 @@ public class TestMultivariateFXSeries {
 		MultivariateFXSeries fxSeries = new MultivariateFXSeries(anyMDFAs, "yyyy-MM-dd");	
 		fxSeries.addSeries(new TargetSeries(0.6, true, "AAPL"));
 		fxSeries.addSeries(new TargetSeries(0.6, true, "QQQ"));
-		TargetSeries spy = new TargetSeries(0.6, true, "SPY");
+		fxSeries.addSeries(new TargetSeries(0.6, true, "SPY"));
+		//TargetSeries spy = new TargetSeries(0.6, true, "SPY");
 		
         for(int i = 0; i < 600; i++) {
 			
@@ -61,12 +62,21 @@ public class TestMultivariateFXSeries {
 			double[] realObs = new double[2];
 			realObs[0] = obs[0]; realObs[1] = obs[1];
 			
-			spy.addValue(observation.getDateTime(), obs[2]);
-			fxSeries.addValue(observation.getDateTime(), realObs);
+			//spy.addValue(observation.getDateTime(), obs[2]);
+			fxSeries.addValue(observation.getDateTime(), obs);
 		}
+           
+        //fxSeries.addSeries(spy);
+        
+        for(int i = 0; i < 20; i++) {
+        	
+        	TimeSeriesEntry<double[]> observation = marketFeed.getNextMultivariateObservation();
+			fxSeries.addValue(observation.getDateTime(), observation.getValue());
+        }
         
         fxSeries.computeAllFilterCoefficients();	
-        fxSeries.addSeries(spy);
+//        fxSeries.addSeries(spy);
+//        fxSeries.computeAllFilterCoefficients();
         
         for(int i = 0; i < 600; i++) {
 			
@@ -109,7 +119,7 @@ public class TestMultivariateFXSeries {
         TimeSeriesEntry<double[]> latest = fxSeries.getLatestSignalEntry();
 		
         assertEquals(4, latest.getValue().length);
-        assertEquals("2017-12-11", latest.getDateTime());
+        assertEquals("2018-01-10", latest.getDateTime());
         assertTrue(latest.getValue()[0] != 0);
         assertTrue(latest.getValue()[1] != 0);
         assertTrue(latest.getValue()[2] != 0);

@@ -36,10 +36,12 @@ public class CsvFeed {
 	private String priceColumnName;
 	private String highColumnName;
 	private String lowColumnName;
+	private String closeColumnName;
 	
 	private DateTime dt;
 	private DateTimeFormatter dtfOut;
 	private String[] headers;
+	
 	
 	
 	public CsvFeed(String dataFile, String dateName, String priceName) throws IOException {
@@ -64,6 +66,24 @@ public class CsvFeed {
 		this.highColumnName = highName;
 		this.lowColumnName = lowName;
 	}
+	
+	
+	public CsvFeed(String dataFile, String dateName, String priceName,
+			String highName, String lowName, String closeName) throws IOException {
+		
+		//System.out.println("Reading file");
+		this.marketDataFeed = new CsvReader(dataFile);
+		this.marketDataFeed.readHeaders();
+		
+		String[] headers = this.marketDataFeed.getHeaders();
+		
+		this.dateColumnName = dateName;
+		this.priceColumnName = priceName;
+		this.highColumnName = highName;
+		this.lowColumnName = lowName;
+		this.setCloseColumnName(closeName);
+	}
+	
 	
 	public CsvFeed(String[] dataFiles, String dateName, String priceName) throws IOException {
 		
@@ -209,9 +229,10 @@ public class CsvFeed {
 		double price = (new Double(marketDataFeed.get(priceColumnName))).doubleValue();
 		double high = (new Double(marketDataFeed.get(highColumnName))).doubleValue();
 		double low = (new Double(marketDataFeed.get(lowColumnName))).doubleValue();		
+		double close = (new Double(marketDataFeed.get(closeColumnName))).doubleValue();		
 		String date_stamp = marketDataFeed.get(dateColumnName);		
 		
-		double[] myBar = new double[] {low, high, price};
+		double[] myBar = new double[] {low, high, price, close};
 		
 		return (new TimeSeriesEntry<double[]>(date_stamp, myBar));
 	}
@@ -286,5 +307,17 @@ public class CsvFeed {
 	
 	public CsvReader[] getMarketDataFeeds() {
 		return marketDataFeeds;
+	}
+
+	public String getCloseColumnName() {
+		return closeColumnName;
+	}
+
+	public void setCloseColumnName(String closeColumnName) {
+		this.closeColumnName = closeColumnName;
+	}
+
+	public void close() {
+		marketDataFeed.close();		
 	}
 }

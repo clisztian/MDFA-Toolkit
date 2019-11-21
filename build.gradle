@@ -25,10 +25,10 @@ dependencies {
     compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     compile group: 'com.googlecode.matrix-toolkits-java', name: 'mtj', version: '1.0.4'
-    compile group: 'com.github.fommil.netlib', name: 'netlib-native_system-linux-x86_64', version: '1.1'
+//    compile group: 'com.github.fommil.netlib', name: 'netlib-native_system-linux-x86_64', version: '1.1'
     compile group: 'net.sourceforge.javacsv', name: 'javacsv', version: '2.0'
 	compile group: 'jfree', name: 'jfreechart', version: '1.0.13'
-	testCompile group: 'org.nd4j', name: 'nd4j-native-platform', version: '0.9.1'
+//	testCompile group: 'org.nd4j', name: 'nd4j-native-platform', version: '0.9.1'
 	
     compile files ('jars/lombok.jar')   
     testCompile 'junit:junit:4.12'
