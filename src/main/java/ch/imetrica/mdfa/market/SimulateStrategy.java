@@ -3,6 +3,7 @@ package ch.imetrica.mdfa.market;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import org.joda.time.format.DateTimeFormatter;
@@ -23,11 +24,15 @@ public class SimulateStrategy {
 	private MultivariateFXSeries strategy;
 	private ArrayList<MDFABase> anyMDFAs;
 	private String strategyName;
+	private HashMap<String, Integer> insideInformation;
+	
 	private int n_strategies;
 	private int[] current_state;
 	private boolean print_results;
 	private float tradeFreq;
-	
+	private int mytrade;
+	private int[] signal;
+	private boolean insider = false;
 	
 	public SimulateStrategy(String market_name, String strategyName, int n_strategies, float tradeFreq, boolean print) throws IOException {
 		
@@ -37,7 +42,9 @@ public class SimulateStrategy {
 		current_state = new int[n_strategies];
 		trader = new TradingPerformance(n_strategies);
 		this.tradeFreq = tradeFreq;
+		insideInformation = new HashMap<String, Integer>();
 		print_results = print;
+		signal = new int[n_strategies];
 	}
 	
 	
@@ -64,21 +71,30 @@ public class SimulateStrategy {
 			double close = entry.getValue()[1];
 			double open = entry.getValue()[2];
 			
-			int[] signal = new int[n_strategies];
+			double noNews = entry.getValue()[3];
+			double good = entry.getValue()[4];
+			double bad = entry.getValue()[5];
 			
-			int mytrade = 0;
+			//System.out.println(timestamp + ", " + noNews + ", " + good + ", " + bad);
+			
+			
+			
+			mytrade = 0;
 			for(int i = 0; i < n_strategies; i++) {
 				
 				signal[i] = rng.nextFloat() < prob[i] ? -1 : 1;
-				signal[i] = rng.nextFloat() < tradeFreq ? 0 : signal[i];
-				mytrade += signal[i];
+				signal[i] = rng.nextFloat() < tradeFreq ? signal[i] : 0;
 				
+				if(insider ) {
+					if(rng.nextFloat() < good) signal[i] = -1;
+					else if(rng.nextFloat() < bad) signal[i] = 1;
+				}
+				
+				
+				mytrade += signal[i];	
 			}
-			
-			
-			
-			history.add(timestamp + ", price: " + df.format(price) + ", close: " + df.format(open) + ", position: (" + signal[0] + " " + signal[1] + " " + signal[2] + ") ");
-			
+
+			history.add(timestamp + ", price: " + df.format(price) + ", close: " + df.format(open) + ", position: (" + mytrade + ") ");			
 			trader.addEvent(timestamp, Math.log(price), Math.log(open), signal);
 			
 		}
@@ -92,12 +108,13 @@ public class SimulateStrategy {
 				String time = myPerformance.get(i).getDateTime();
 				double real = myPerformance.get(i).getValue();
 				
-				System.out.println(history.get(i) + " " + df.format(real) + "   " + time);			
+			    System.out.println(history.get(i) + " " + df.format(real) + "   " + time);			
 			}
 		}
 				
 		kpi = new KeyPerformanceIndicator(trader);
 		kpi.computeKPIs();	
+		//System.out.println(kpi.toString());
 	}
 	
 	public KeyPerformanceIndicator getKPI() {
@@ -120,9 +137,32 @@ public class SimulateStrategy {
 		this.strategyName = strategyName;
 	}
 	
+	public boolean getInsider() {
+		return insider;
+	}
+	
+	public void setInsider(boolean insider) {
+		this.insider = insider;
+	}
+	
 	public void closeMarket() {
 		market.close();
 	}
+	
+	
+	/**
+	 * Adds inside information event (eq, News, GreenDays)
+	 * signal (-1, 1) determines whether to short/buy
+	 * @param date
+	 * @param signal
+	 */
+	public void addInsideInformation(String date, int signal) {
+		
+		if(!insideInformation.containsKey(date)) {
+			insideInformation.put(date, signal);
+		}		
+	}
+	
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -133,7 +173,7 @@ public class SimulateStrategy {
 		
 		for(int i = 0; i < n_simulations; i++) {
 			
-			SimulateStrategy simulator = new SimulateStrategy("data/CEVA.SW.daily.csv", "Bobo", 3, 0f, false);
+			SimulateStrategy simulator = new SimulateStrategy("data/AVEC.all.csv", "Bobo", 3, 0f, true);
 			
 			float[] strategy = new float[] {.5f, .3f, .1f};
 			simulator.simulate(strategy);	
@@ -141,7 +181,7 @@ public class SimulateStrategy {
 			sharpeDistribution[i] = simulator.getKPI().getSharpeRatio();			
 			simulator.closeMarket();
 			
-			//System.out.println(df.format(sharpeDistribution[i]));
+			System.out.println(df.format(sharpeDistribution[i]));
 		}
 	}
 

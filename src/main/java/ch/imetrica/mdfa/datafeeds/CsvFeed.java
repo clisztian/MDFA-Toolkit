@@ -37,7 +37,9 @@ public class CsvFeed {
 	private String highColumnName;
 	private String lowColumnName;
 	private String closeColumnName;
-	
+	private String noNewsName;
+	private String badNewsName;
+	private String goodNewsName;
 	private DateTime dt;
 	private DateTimeFormatter dtfOut;
 	private String[] headers;
@@ -82,6 +84,29 @@ public class CsvFeed {
 		this.highColumnName = highName;
 		this.lowColumnName = lowName;
 		this.setCloseColumnName(closeName);
+	}
+	
+	
+	public CsvFeed(String dataFile, String dateName, String priceName,
+			String highName, String lowName, String closeName, String noNews, String badNews, String goodNews) throws IOException {
+		
+		//System.out.println("Reading file");
+		this.marketDataFeed = new CsvReader(dataFile);
+		this.marketDataFeed.readHeaders();
+		
+		String[] headers = this.marketDataFeed.getHeaders();
+		
+		this.dateColumnName = dateName;
+		this.priceColumnName = priceName;
+		this.highColumnName = highName;
+		this.lowColumnName = lowName;
+		this.setCloseColumnName(closeName);
+		
+		this.noNewsName = noNews; 
+		this.badNewsName = badNews;
+		this.goodNewsName = goodNews;
+		
+		
 	}
 	
 	
@@ -233,6 +258,29 @@ public class CsvFeed {
 		String date_stamp = marketDataFeed.get(dateColumnName);		
 		
 		double[] myBar = new double[] {low, high, price, close};
+		
+		return (new TimeSeriesEntry<double[]>(date_stamp, myBar));
+	}
+	
+	public TimeSeriesEntry<double[]> getNextInfoBar() throws NumberFormatException, IOException {
+		
+
+		if(!marketDataFeed.readRecord()) {
+			return null;
+		}
+		
+		double price = (new Double(marketDataFeed.get(priceColumnName))).doubleValue();
+		double high = (new Double(marketDataFeed.get(highColumnName))).doubleValue();
+		double low = (new Double(marketDataFeed.get(lowColumnName))).doubleValue();		
+		double close = (new Double(marketDataFeed.get(closeColumnName))).doubleValue();		
+		
+		double noNews = (new Double(marketDataFeed.get(noNewsName))).doubleValue();
+		double badNews = (new Double(marketDataFeed.get(badNewsName))).doubleValue();
+		double goodNews = (new Double(marketDataFeed.get(goodNewsName))).doubleValue();		
+		
+		String date_stamp = marketDataFeed.get(dateColumnName);		
+		
+		double[] myBar = new double[] {low, high, price, close, noNews, goodNews, badNews};
 		
 		return (new TimeSeriesEntry<double[]>(date_stamp, myBar));
 	}

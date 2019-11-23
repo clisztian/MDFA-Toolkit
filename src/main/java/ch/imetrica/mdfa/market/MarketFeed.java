@@ -17,12 +17,12 @@ public class MarketFeed {
 	public MarketFeed(String dataFile) throws IOException {		
 		
 		rng = new Random();
-		marketFeed = new CsvFeed(dataFile, "Index", "Open", "High", "Low", "Close");
+		marketFeed = new CsvFeed(dataFile, "Index", "Open", "High", "Low", "Close", "ProbNoNews", "ProbBadNews", "ProbGoodNews");
 	}
 	
 	public TimeSeriesEntry<double[]> getNextPrice() throws NumberFormatException, IOException {
 		
-		TimeSeriesEntry<double[]> myEntry = marketFeed.getNextBar();	
+		TimeSeriesEntry<double[]> myEntry = marketFeed.getNextInfoBar();	
 		
 		if(myEntry == null) {
 			return null;
@@ -36,9 +36,12 @@ public class MarketFeed {
 		double low = bar[0];
 		double close = bar[3];
 		double open = bar[2];
+		double noNews = bar[4];
+		double goodNews = bar[5];
+		double badNews = bar[6];
 		
 		double trade_price = (high - low)*rng.nextDouble() + low;		
-		double[] newbar = new double[] {trade_price, close, open};
+		double[] newbar = new double[] {trade_price, close, open, noNews, goodNews, badNews};
 		
 		return new TimeSeriesEntry<double[]>(timestamp, newbar); 				
 	}
