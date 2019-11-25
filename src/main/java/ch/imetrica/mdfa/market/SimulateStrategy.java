@@ -15,6 +15,7 @@ import ch.imetrica.mdfa.series.TimeSeriesEntry;
 
 public class SimulateStrategy {
 
+	public static String[] banks = new String[] {"UBS", "DeutscheBank", "Credit Suisse", "ZKB", "Vontobel", "Postfinance"};
 	
 	private TradingPerformance trader; 
 	private MarketFeed market;
@@ -50,7 +51,8 @@ public class SimulateStrategy {
 	
 	public void simulate(float[] prob) throws Exception {
 		
-		Random rng = new Random(23);
+		Random rng = new Random(System.currentTimeMillis()%1000);
+		
 		ArrayList<String> history = new ArrayList<String>();
 		
 		if(prob.length != n_strategies) {
@@ -114,7 +116,7 @@ public class SimulateStrategy {
 				
 		kpi = new KeyPerformanceIndicator(trader);
 		kpi.computeKPIs();	
-		//System.out.println(kpi.toString());
+		System.out.println(kpi.outputLine() + ", " + (insider ? 1.0 : 0.0));
 	}
 	
 	public KeyPerformanceIndicator getKPI() {
@@ -164,30 +166,38 @@ public class SimulateStrategy {
 	}
 	
 	
+
+	
+	
 	public static void main(String[] args) throws Exception {
 		
 		DecimalFormat df = new DecimalFormat("#.##");
 		
-		int n_simulations = 1;
+		int n_simulations = 1000;
 		double[] sharpeDistribution = new double[n_simulations];
 		
 		for(int i = 0; i < n_simulations; i++) {
 			
-			SimulateStrategy simulator = new SimulateStrategy("data/AVEC.all.csv", "Bobo", 3, 0f, true);
-			
-			float[] strategy = new float[] {.5f, .3f, .1f};
+			SimulateStrategy simulator = new SimulateStrategy("data/AVEC.all.csv", "Bobo", 1, 0f, false);
+			simulator.setInsider(true);
+			float[] strategy = new float[] {.5f};
 			simulator.simulate(strategy);	
 			
-			sharpeDistribution[i] = simulator.getKPI().getSharpeRatio();			
+			//sharpeDistribution[i] = simulator.getKPI().getSharpeRatio();			
 			simulator.closeMarket();
 			
-			System.out.println(df.format(sharpeDistribution[i]));
+			//System.out.println(df.format(sharpeDistribution[i]));
 		}
 	}
 
 
 	public double getKPI(int kpiChoice) {	
 		return kpi.getKPI(kpiChoice);
+	}
+
+
+	public double[] getInsiderKPIs() {
+		return kpi.getVectorKPIs(); 
 	}
 
 

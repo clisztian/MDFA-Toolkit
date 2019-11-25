@@ -227,6 +227,18 @@ public class KeyPerformanceIndicator {
 		return sb.toString();
 	}
 	
+	public String outputLine() {
+		
+		DecimalFormat meanFormat = new DecimalFormat("#.####");
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(ntrades + ", " + df.format(roi) + ", " + df.format(peakPerformance) + ", ");
+		sb.append(meanFormat.format(meanReturn) + ", " + df.format(maxLoss) + ", " + df.format(peakGain) + ", ");
+		sb.append(df.format(avgGain) + ", " + df.format(avgLoss) + ", " + df.format(maxDrawdown) + ", ");
+		sb.append(df.format(sharpeRatio) + ", " + df.format(winPercentage));
+		
+		return sb.toString();
+	}
 	/**
 	 * Returns the KPIs in vector form for external use 
 	 * (eg Machine learning methods)
